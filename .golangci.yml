@@ -1,0 +1,86 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - contextcheck
+    - depguard
+    - errorlint
+    - exhaustive
+    - forbidigo
+    - gocritic
+    - gosec
+    - misspell
+    - nilerr
+    - noctx
+    - revive
+    - sqlclosecheck
+    - unconvert
+    - unparam
+    - usestdlibvars
+  settings:
+    depguard:
+      rules:
+        platform-has-no-business-logic:
+          files:
+            - "**/internal/platform/**"
+          deny:
+            - pkg: github.com/SamoySamoy/Soma/internal/modules
+              desc: platform must not depend on modules
+            - pkg: github.com/SamoySamoy/Soma/internal/core
+              desc: platform must not depend on core
+            - pkg: github.com/SamoySamoy/Soma/internal/iam
+              desc: platform must not depend on iam
+        no-test-frameworks:
+          deny:
+            - pkg: github.com/stretchr/testify
+              desc: use the standard testing package and go-cmp (CLAUDE.md)
+            - pkg: github.com/golang/mock
+              desc: write small hand-made fakes instead (CLAUDE.md)
+            - pkg: go.uber.org/mock
+              desc: write small hand-made fakes instead (CLAUDE.md)
+    exhaustive:
+      default-signifies-exhaustive: true
+    forbidigo:
+      analyze-types: true
+      forbid:
+        - pattern: ^time\.Now$
+          msg: inject clock.Clock instead of calling time.Now (CLAUDE.md)
+        - pattern: ^os\.(Getenv|LookupEnv|Environ)$
+          msg: read configuration only in internal/platform/config (CLAUDE.md)
+        - pattern: ^(fmt\.Print.*|print|println)$
+          msg: use the slog logger
+    revive:
+      rules:
+        - name: exported
+        - name: package-comments
+        - name: context-as-argument
+        - name: error-return
+        - name: error-naming
+        - name: receiver-naming
+        - name: var-naming
+        - name: indent-error-flow
+        - name: unused-parameter
+  exclusions:
+    generated: lax
+    rules:
+      - path: internal/platform/(clock|config)/
+        linters: [forbidigo]
+      - path: cmd/soma/
+        text: fmt\.Print
+        linters: [forbidigo]
+      - path: _test\.go
+        linters: [gosec, unparam]
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/SamoySamoy/Soma

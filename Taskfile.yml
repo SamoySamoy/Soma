@@ -1,0 +1,42 @@
+version: "3"
+
+dotenv: [".env"]
+
+vars:
+  # Dev tools pinned in tools/go.mod, kept out of the main module's graph.
+  TOOLS: go tool -modfile=tools/go.mod
+  # The race detector needs cgo with a 64-bit C toolchain; CI (Linux) always has it.
+  RACE: '{{if ne OS "windows"}}-race{{end}}'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - go tool task --list
+
+  fmt:
+    desc: Format Go code
+    cmds:
+      - "{{.TOOLS}} golangci-lint fmt ./..."
+
+  lint:
+    desc: Run all linters
+    cmds:
+      - "{{.TOOLS}} golangci-lint run ./..."
+
+  test:
+    desc: Run unit tests (no Docker needed)
+    cmds:
+      - go test {{.RACE}} -count=1 ./...
+
+  vuln:
+    desc: Check dependencies for known vulnerabilities
+    cmds:
+      - "{{.TOOLS}} govulncheck ./..."
+
+  check:
+    desc: Everything CI runs. Must pass before a task is done.
+    cmds:
+      - task: lint
+      - task: test
+      - task: vuln
