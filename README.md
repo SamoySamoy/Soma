@@ -103,7 +103,7 @@ docker compose up
 ### Development prerequisites
 
 - Go 1.27
-- Node.js 22 LTS
+- Node.js 24 LTS
 - Docker
 
 All other development tools are pinned in `go.mod` and run through `go tool`, so there is nothing else to install. Common commands, once the project skeleton lands:

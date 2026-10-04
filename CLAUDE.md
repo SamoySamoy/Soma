@@ -25,11 +25,15 @@ Rules:
 | Jobs | River |
 | Crypto | Argon2id (`x/crypto/argon2`), Tink, `pquerna/otp`, `filippo.io/age` |
 | Logging | `log/slog` JSON |
-| Frontend | Node 22 LTS, React 19, TypeScript (strict), Vite, Mantine, React Router, TanStack Query, openapi-typescript + openapi-fetch, react-i18next |
+| Frontend | Node 24 LTS, React 19, TypeScript (strict), Vite, Mantine, React Router, TanStack Query, openapi-typescript + openapi-fetch, react-i18next |
 | Tests | Go `testing` + `go-cmp`, testcontainers-go, Vitest + Testing Library, Playwright |
 | Tooling | Task (Taskfile), golangci-lint, govulncheck, ESLint, Prettier |
 
-Go dev tools (task, sqlc, goose, oapi-codegen, govulncheck) are pinned as `tool` directives in `go.mod` and run with `go tool <name>`. Never require a global install of a tool that can be pinned this way.
+Dev tools are pinned, never installed globally:
+- `task` is a `tool` directive in the root `go.mod`: run `go tool task <name>`.
+- golangci-lint, goose, oapi-codegen and govulncheck are `tool` directives in `tools/go.mod`, kept out of the main module's dependency graph. The Taskfile runs them as `go tool -modfile=tools/go.mod <name>`.
+- sqlc runs from its pinned Docker image (it needs cgo, which the Windows dev machine lacks).
+- The race detector runs only on Linux (CI), for the same reason.
 
 Don't add a dependency that isn't in this table or the tech spec without asking first. Prefer the standard library.
 
@@ -171,7 +175,7 @@ Run everything through Task: `go tool task <name>`.
 
 - Conventional Commits: `feat(money): add transfers (FIN-02)`, `fix(iam): ...`, `test`, `refactor`, `docs`, `chore`, `build`, `ci`.
 - One logical change per commit. Generated code is committed in the same commit as its source.
-- Branches: `m<N>/<short-description>` (e.g. `m1/totp`). `main` is always green.
+- The default branch is `master` and must always be green. While Soma has a single developer, finished sections are committed and pushed straight to `master` after `go tool task check` passes. Once there are other contributors, work moves to branches named `m<N>/<short-description>` with pull requests.
 - Never commit `.env`, keys, database dumps or `.soma` files.
 
 ## Definition of done
