@@ -1,0 +1,59 @@
+# --- Secrets and local config -------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keyset.json
+master.key
+soma.yaml
+!deploy/**/soma.example.yaml
+
+# --- Personal data (never commit) ----------------------------------------
+*.soma
+*.dump
+*.sql.gz
+*.age
+backups/
+data/
+
+# --- Go -------------------------------------------------------------------
+/bin/
+/dist/
+/soma
+/soma.exe
+*.exe
+*.test
+*.out
+coverage.*
+*.prof
+/tmp/
+go.work
+go.work.sum
+
+# --- Frontend -------------------------------------------------------------
+node_modules/
+web/dist/*
+!web/dist/.gitkeep
+.vite/
+*.tsbuildinfo
+npm-debug.log*
+coverage/
+
+# --- Tests ----------------------------------------------------------------
+playwright-report/
+test-results/
+blob-report/
+
+# --- Editors and OS -------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Claude Code local settings ------------------------------------------
+.claude/settings.local.json
