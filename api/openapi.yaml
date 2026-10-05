@@ -1,0 +1,83 @@
+openapi: 3.0.3
+info:
+  title: Soma API
+  version: 0.1.0
+  description: |
+    The Soma REST API. Every operation declares `x-soma-permission`, the
+    permission a caller needs (`public` for unauthenticated endpoints).
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+paths:
+  /api/v1/meta:
+    get:
+      operationId: getMeta
+      summary: Instance information
+      description: Public information about this Soma instance.
+      tags: [meta]
+      x-soma-permission: public
+      responses:
+        "200":
+          description: Instance information.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Meta"
+        default:
+          $ref: "#/components/responses/Problem"
+
+components:
+  schemas:
+    Meta:
+      type: object
+      additionalProperties: false
+      required: [name, version, mode]
+      properties:
+        name:
+          type: string
+          example: Soma
+        version:
+          type: string
+          example: 0.1.0
+        mode:
+          type: string
+          enum: [local, private, public]
+
+    Problem:
+      description: RFC 9457 problem details.
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Not Found
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          description: Stable machine-readable error code.
+          example: request.not_found
+        request_id:
+          type: string
+        errors:
+          type: object
+          description: Per-field validation messages keyed by JSON field name.
+          additionalProperties:
+            type: string
+
+  responses:
+    Problem:
+      description: An error, as RFC 9457 problem details.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"

@@ -1,0 +1,9 @@
+# Generates the Go server interface and models from api/openapi.yaml.
+# Run with: go tool task gen
+package: apigen
+output: internal/apigen/apigen.gen.go
+generate:
+  std-http-server: true
+  strict-server: true
+  models: true
+  embedded-spec: true
