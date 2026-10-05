@@ -91,27 +91,29 @@ Some design choices worth knowing:
 
 ## Getting started
 
-Not available yet. Install instructions will appear here once the first milestone runs end to end. The plan is:
+Soma runs, but it has no features yet: the first milestone (project skeleton) is done. You can try the empty shell:
 
 ```bash
-git clone https://github.com/<you>/soma.git
-cd soma
+git clone https://github.com/SamoySamoy/Soma.git
+cd Soma
 docker compose up
-# open http://localhost:8080 and create your account
+# open http://localhost:8080
 ```
 
-### Development prerequisites
+If another PostgreSQL already uses port 5432 on your machine, start with `SOMA_DB_PORT=5433 docker compose up`.
 
-- Go 1.27
-- Node.js 24 LTS
-- Docker
+### Development
 
-All other development tools are pinned in `go.mod` and run through `go tool`, so there is nothing else to install. Common commands, once the project skeleton lands:
+Prerequisites: Go 1.27, Node.js 24 LTS and Docker. Every other tool is pinned in the repository and runs through `go tool`, so there is nothing else to install.
 
 ```bash
-go tool task dev       # run the database, API server and web app with live reload
-go tool task check     # generate code, lint, and run all tests
+cp .env.example .env    # adjust ports if needed
+go tool task dev        # Postgres in Docker, the Go server, and the Vite dev server on http://localhost:5173
+go tool task check      # regenerate code, lint, and run all tests (what CI runs)
+go tool task --list     # every available task
 ```
+
+Architecture decisions are recorded in [docs/adr](docs/adr/README.md).
 
 ## Contributing
 
