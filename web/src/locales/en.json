@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "Soma",
+    "tagline": "A private record of a whole person."
+  },
+  "home": {
+    "title": "Welcome to Soma",
+    "bodyMapComing": "Your body map will appear here.",
+    "instance": "Version {{version}}, {{mode}} mode",
+    "loading": "Connecting to the server…",
+    "offline": "Can't reach the Soma server. Check that it is running, then reload the page."
+  },
+  "mode": {
+    "local": "local",
+    "private": "private server",
+    "public": "public cloud"
+  }
+}
