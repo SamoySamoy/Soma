@@ -1,0 +1,45 @@
+# Local mode: docker compose up, then open http://localhost:8080
+# Ports are bound to 127.0.0.1 so nothing is exposed to your network.
+name: soma
+
+services:
+  postgres:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: soma
+      POSTGRES_USER: soma
+      POSTGRES_PASSWORD: ${SOMA_DB_OWNER_PASSWORD:-soma_dev}
+      SOMA_APP_DB_PASSWORD: ${SOMA_APP_DB_PASSWORD:-soma_app_dev}
+    volumes:
+      # Postgres 18 images keep data under /var/lib/postgresql/18/docker.
+      - pgdata:/var/lib/postgresql
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Host port for local development tools; change it if 5432 is taken.
+      - "127.0.0.1:${SOMA_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soma -d soma"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  soma:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SOMA_MODE: local
+      SOMA_BASE_URL: http://localhost:8080
+      SOMA_DATABASE_URL: postgres://soma_app:${SOMA_APP_DB_PASSWORD:-soma_app_dev}@postgres:5432/soma?sslmode=disable
+      SOMA_MIGRATE_DATABASE_URL: postgres://soma:${SOMA_DB_OWNER_PASSWORD:-soma_dev}@postgres:5432/soma?sslmode=disable
+      SOMA_LOG_FORMAT: text
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

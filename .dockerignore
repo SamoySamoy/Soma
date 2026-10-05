@@ -1,0 +1,7 @@
+.git
+.task
+.env
+bin
+**/node_modules
+web/dist
+*.soma

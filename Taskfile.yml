@@ -14,6 +14,83 @@ tasks:
     cmds:
       - go tool task --list
 
+  gen:
+    desc: Regenerate code from the OpenAPI contract
+    cmds:
+      - task: gen:api
+      - task: gen:web
+
+  gen:api:
+    desc: Generate the Go server from api/openapi.yaml
+    sources: [api/openapi.yaml, api/oapi-codegen.yaml]
+    generates: [internal/apigen/apigen.gen.go]
+    cmds:
+      - "{{.TOOLS}} oapi-codegen -config api/oapi-codegen.yaml api/openapi.yaml"
+
+  gen:web:
+    desc: Generate the TypeScript API types from api/openapi.yaml
+    dir: web
+    sources: [../api/openapi.yaml]
+    generates: [src/api/schema.gen.ts]
+    cmds:
+      - npm run gen:api
+
+  web:install:
+    desc: Install web dependencies exactly as locked
+    dir: web
+    sources: [package.json, package-lock.json]
+    cmds:
+      - npm ci
+
+  web:build:
+    desc: Build the web app into web/dist (embedded in the Go binary)
+    dir: web
+    deps: [web:install]
+    cmds:
+      - npm run build
+
+  web:dev:
+    desc: Run the Vite dev server (proxies /api to the Go server)
+    dir: web
+    cmds:
+      - npm run dev
+
+  gen:verify:
+    desc: Fail if generated code is out of date
+    cmds:
+      - task: gen
+      - git diff --exit-code -- internal/apigen web/src/api
+
+  migrate:new:
+    desc: "Create a migration: go tool task migrate:new -- add_people"
+    cmds:
+      - "{{.TOOLS}} goose -dir migrations -s create {{.CLI_ARGS}} sql"
+
+  db:up:
+    desc: Start PostgreSQL in Docker and wait until it is healthy
+    cmds:
+      - docker compose up -d --wait postgres
+
+  db:down:
+    desc: Stop PostgreSQL (data is kept in the pgdata volume)
+    cmds:
+      - docker compose stop postgres
+
+  run:
+    desc: Run the server against the database in .env
+    cmds:
+      - go run ./cmd/soma serve
+
+  dev:
+    desc: Database + Go server + Vite dev server (open http://localhost:5173)
+    deps: [db:up, web:install]
+    cmds:
+      - task: dev:servers
+
+  dev:servers:
+    internal: true
+    deps: [run, web:dev]
+
   fmt:
     desc: Format Go code
     cmds:
@@ -21,13 +98,36 @@ tasks:
 
   lint:
     desc: Run all linters
+    deps: [web:install]
     cmds:
       - "{{.TOOLS}} golangci-lint run ./..."
+      - cd web && npm run lint
+      - cd web && npm run typecheck
 
   test:
     desc: Run unit tests (no Docker needed)
+    deps: [web:install]
     cmds:
       - go test {{.RACE}} -count=1 ./...
+      - cd web && npm test
+
+  build:
+    desc: Build the web app and a soma binary with it embedded
+    deps: [web:build]
+    cmds:
+      - go build -trimpath -ldflags "-s -w -X github.com/SamoySamoy/Soma/internal/buildinfo.Version={{.VERSION}}" -o bin/soma{{exeExt}} ./cmd/soma
+    vars:
+      VERSION:
+        sh: git describe --tags --always --dirty
+
+  test:integration:
+    desc: Run integration tests against real PostgreSQL (needs Docker)
+    env:
+      # Docker Desktop on Windows: containers (testcontainers' reaper) must
+      # mount the Linux-side socket, not the host's named pipe.
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: '{{if eq OS "windows"}}/var/run/docker.sock{{end}}'
+    cmds:
+      - go test -tags integration {{.RACE}} -count=1 ./...
 
   vuln:
     desc: Check dependencies for known vulnerabilities
@@ -37,6 +137,8 @@ tasks:
   check:
     desc: Everything CI runs. Must pass before a task is done.
     cmds:
+      - task: gen:verify
       - task: lint
       - task: test
+      - task: test:integration
       - task: vuln
