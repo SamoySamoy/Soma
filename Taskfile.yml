@@ -123,12 +123,13 @@ tasks:
 
   test:integration:
     desc: Run integration tests against real PostgreSQL (needs Docker)
-    env:
-      # Docker Desktop on Windows: containers (testcontainers' reaper) must
-      # mount the Linux-side socket, not the host's named pipe.
-      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: '{{if eq OS "windows"}}/var/run/docker.sock{{end}}'
+    vars:
+      # Docker Desktop on Windows: testcontainers' reaper must mount the
+      # Linux-side socket, not the host's named pipe. The variable must be
+      # absent elsewhere; an empty value breaks the mount.
+      SOCKET_OVERRIDE: '{{if eq OS "windows"}}TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock {{end}}'
     cmds:
-      - go test -tags integration {{.RACE}} -count=1 ./...
+      - "{{.SOCKET_OVERRIDE}}go test -tags integration {{.RACE}} -count=1 ./..."
 
   vuln:
     desc: Check dependencies for known vulnerabilities
