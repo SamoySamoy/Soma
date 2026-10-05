@@ -30,6 +30,7 @@ tasks:
   gen:web:
     desc: Generate the TypeScript API types from api/openapi.yaml
     dir: web
+    deps: [web:install]
     sources: [../api/openapi.yaml]
     generates: [src/api/schema.gen.ts]
     cmds:
