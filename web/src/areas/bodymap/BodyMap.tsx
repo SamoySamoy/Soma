@@ -1,4 +1,4 @@
-import { Anchor, Badge, Group, Paper, Stack, Text } from "@mantine/core";
+import { Anchor, Badge, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -71,13 +71,26 @@ export function BodyMap({ areas }: Props) {
   }
 
   return (
-    <Stack gap="md">
-      <Paper withBorder radius="md" p="xs" style={{ overflowX: "auto" }}>
+    <SimpleGrid
+      cols={{ base: 1, sm: 2 }}
+      spacing="md"
+      verticalSpacing="md"
+      style={{ alignItems: "start", gridTemplateColumns: "minmax(0, 1fr)" }}
+    >
+      <Paper withBorder radius="md" p="xs" style={{ minWidth: 0 }}>
         <svg
           viewBox="0 0 600 530"
           role="group"
           aria-label={t("bodymap.figureLabel")}
-          style={{ display: "block", width: "100%", minWidth: 420, height: "auto" }}
+          style={{
+            display: "block",
+            width: "100%",
+            height: "auto",
+            // Fit the figure to the screen height so it never needs scrolling.
+            // The viewBox scales inside this box without cropping.
+            maxHeight: "min(64vh, 520px)",
+            margin: "0 auto",
+          }}
         >
           {/* The figure itself: not interactive. */}
           <g fill="none" stroke="var(--mantine-color-gray-5)" strokeWidth={1.5}>
@@ -159,52 +172,54 @@ export function BodyMap({ areas }: Props) {
         </svg>
       </Paper>
 
-      {current && (
-        <Paper withBorder radius="md" p="md" aria-live="polite">
-          <Group justify="space-between" align="flex-start" wrap="wrap">
-            <Stack gap={4}>
-              <Text fw={600}>{t(`areas.${current.key}.name`)}</Text>
-              <Text size="sm" c="dimmed">
-                {areaSummary(t, current)}
-              </Text>
-            </Stack>
-            <Group gap="xs">
-              <Badge color={statusColor(current.status)} variant="light">
-                {current.enabled ? statusLabel(t, current.status) : t("bodymap.status.unknown")}
-              </Badge>
-              <Anchor component={Link} to={`/me/${current.key}`} size="sm">
-                {t("bodymap.openArea", { name: t(`areas.${current.key}.name`) })}
-              </Anchor>
+      <Stack gap="md" style={{ minWidth: 0 }}>
+        {current && (
+          <Paper withBorder radius="md" p="md" aria-live="polite">
+            <Group justify="space-between" align="flex-start" wrap="wrap">
+              <Stack gap={4}>
+                <Text fw={600}>{t(`areas.${current.key}.name`)}</Text>
+                <Text size="sm" c="dimmed">
+                  {areaSummary(t, current)}
+                </Text>
+              </Stack>
+              <Group gap="xs">
+                <Badge color={statusColor(current.status)} variant="light">
+                  {current.enabled ? statusLabel(t, current.status) : t("bodymap.status.unknown")}
+                </Badge>
+                <Anchor component={Link} to={`/me/${current.key}`} size="sm">
+                  {t("bodymap.openArea", { name: t(`areas.${current.key}.name`) })}
+                </Anchor>
+              </Group>
             </Group>
-          </Group>
-        </Paper>
-      )}
+          </Paper>
+        )}
 
-      <nav aria-label={t("bodymap.listLabel")}>
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gap: 6,
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-          }}
-        >
-          {areas.map((a) => (
-            <li key={a.key}>
-              <Anchor component={Link} to={`/me/${a.key}`} size="sm">
-                {t(`areas.${a.key}.name`)}
-              </Anchor>
-              <Text span size="sm" c="dimmed">
-                {" "}
-                · {a.enabled ? statusLabel(t, a.status) : t("bodymap.status.unknown")}
-              </Text>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </Stack>
+        <nav aria-label={t("bodymap.listLabel")}>
+          <ul
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+              display: "grid",
+              gap: 6,
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            }}
+          >
+            {areas.map((a) => (
+              <li key={a.key}>
+                <Anchor component={Link} to={`/me/${a.key}`} size="sm">
+                  {t(`areas.${a.key}.name`)}
+                </Anchor>
+                <Text span size="sm" c="dimmed">
+                  {" "}
+                  · {a.enabled ? statusLabel(t, a.status) : t("bodymap.status.unknown")}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </Stack>
+    </SimpleGrid>
   );
 }
 
