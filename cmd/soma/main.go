@@ -16,6 +16,7 @@ import (
 	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
 	"github.com/SamoySamoy/Soma/internal/modules/journal"
+	"github.com/SamoySamoy/Soma/internal/modules/money"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/modules/self"
 	"github.com/SamoySamoy/Soma/internal/modules/tasks"
@@ -149,6 +150,9 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	if err := space.EnsureLocal(ctx, database, clk); err != nil {
 		return err
 	}
+	if err := money.SeedDefaults(ctx, database, clk); err != nil {
+		return err
+	}
 	handler, err := server.New(server.Deps{
 		Config:        cfg,
 		Logger:        logger,
@@ -162,10 +166,12 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 			bodymap.AreaMind:           journal.BodymapProvider{},
 			bodymap.AreaResponsibility: tasks.BodymapProvider{},
 			bodymap.AreaSelf:           self.BodymapProvider{},
+			bodymap.AreaMoney:          money.BodymapProvider{},
 		}),
 		Journal: journal.NewService(database, clk),
 		Tasks:   tasks.NewService(database, clk),
 		Self:    self.NewService(database, clk),
+		Money:   money.NewService(database, clk),
 	})
 	if err != nil {
 		return err

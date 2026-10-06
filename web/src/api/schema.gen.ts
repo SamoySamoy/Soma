@@ -233,6 +233,210 @@ export interface paths {
         patch: operations["updateSelfProfile"];
         trace?: never;
     };
+    "/api/v1/money/currencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Currencies you can use, with their minor-unit digits */
+        get: operations["listCurrencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the money settings */
+        get: operations["getMoneySettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change the base currency
+         * @description JSON Merge Patch with `If-Match`. Totals and budgets are shown in the base currency.
+         */
+        patch: operations["updateMoneySettings"];
+        trace?: never;
+    };
+    "/api/v1/money/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List accounts with their balances */
+        get: operations["listAccounts"];
+        put?: never;
+        /** Add an account */
+        post: operations["createAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an account */
+        get: operations["getAccount"];
+        put?: never;
+        post?: never;
+        /** Move an account to the trash */
+        delete: operations["deleteAccount"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit an account
+         * @description JSON Merge Patch with `If-Match`. The currency of an account can't change.
+         */
+        patch: operations["updateAccount"];
+        trace?: never;
+    };
+    "/api/v1/money/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List categories (a two-level tree) */
+        get: operations["listCategories"];
+        put?: never;
+        /** Add a category */
+        post: operations["createCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List transactions, newest first */
+        get: operations["listTransactions"];
+        put?: never;
+        /**
+         * Record an income, an expense or a transfer
+         * @description Amounts are positive; the kind sets the sign. A transfer creates two
+         *     linked rows, and both accounts must use the same currency.
+         */
+        post: operations["createTransaction"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/transactions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a transaction */
+        get: operations["getTransaction"];
+        put?: never;
+        post?: never;
+        /**
+         * Move a transaction to the trash
+         * @description A transfer moves both of its sides to the trash together.
+         */
+        delete: operations["deleteTransaction"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a transaction
+         * @description JSON Merge Patch with `If-Match`. Editable: `amount_minor` (positive),
+         *     `occurred_on`, `category_id`, `payee`, `notes`. Transfers and the kind
+         *     can't be edited; delete and record again instead.
+         */
+        patch: operations["updateTransaction"];
+        trace?: never;
+    };
+    "/api/v1/money/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Budgets and spending for a month */
+        get: operations["getBudgets"];
+        /**
+         * Set a category's budget for a month
+         * @description An amount of 0 removes the budget.
+         */
+        put: operations["setBudget"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The latest exchange rate per currency */
+        get: operations["listRates"];
+        /**
+         * Set the exchange rate for a currency on a day
+         * @description One unit of the currency equals `rate_e8 / 10^8` base-currency major units.
+         */
+        put: operations["setRate"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/money/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Net worth and the month's totals, in the base currency */
+        get: operations["getMoneySummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -303,6 +507,172 @@ export interface components {
         /** @description Fields to change. A null value clears the field. Unknown fields are refused. */
         MergePatch: {
             [key: string]: unknown;
+        };
+        Currency: {
+            code: string;
+            /** @description Digits after the decimal point, for display and input. */
+            digits: number;
+        };
+        CurrencyList: {
+            items: components["schemas"]["Currency"][];
+        };
+        MoneySettings: {
+            base_currency: string;
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        Account: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            kind: "cash" | "bank" | "credit_card" | "e_wallet" | "loan" | "investment";
+            currency: string;
+            /** @description Balance before the first recorded transaction, in minor units. A loan is entered as a negative amount. */
+            opening_minor: number;
+            opened_on: string;
+            /** @description Opening balance plus every transaction, in minor units. */
+            balance_minor: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        AccountInput: {
+            name: string;
+            /** @enum {string} */
+            kind: "cash" | "bank" | "credit_card" | "e_wallet" | "loan" | "investment";
+            currency: string;
+            /** @default 0 */
+            opening_minor: number;
+            opened_on: string;
+        };
+        AccountList: {
+            items: components["schemas"]["Account"][];
+        };
+        Category: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parent_id?: string;
+            name: string;
+            /** @enum {string} */
+            kind: "expense" | "income";
+        };
+        CategoryInput: {
+            name: string;
+            /** @enum {string} */
+            kind: "expense" | "income";
+            /** Format: uuid */
+            parent_id?: string;
+        };
+        CategoryList: {
+            items: components["schemas"]["Category"][];
+        };
+        Transaction: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            account_id: string;
+            /** @enum {string} */
+            kind: "income" | "expense" | "transfer_in" | "transfer_out" | "adjustment";
+            /** @description Signed: income and transfers in are positive, expenses and transfers out negative. */
+            amount_minor: number;
+            occurred_on: string;
+            /** Format: uuid */
+            category_id?: string;
+            payee?: string;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Shared by the two sides of a transfer.
+             */
+            transfer_id?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        TransactionInput: {
+            /** @enum {string} */
+            kind: "income" | "expense" | "transfer";
+            /** Format: uuid */
+            account_id: string;
+            /**
+             * Format: uuid
+             * @description The receiving account, for a transfer.
+             */
+            to_account_id?: string;
+            amount_minor: number;
+            occurred_on: string;
+            /** Format: uuid */
+            category_id?: string;
+            payee?: string;
+            notes?: string;
+        };
+        TransactionList: {
+            items: components["schemas"]["Transaction"][];
+            next_cursor?: string;
+        };
+        BudgetLine: {
+            /** Format: uuid */
+            category_id: string;
+            name: string;
+            /** Format: uuid */
+            parent_id?: string;
+            /** @description The budget for the month, in the base currency. 0 means none set. */
+            budget_minor: number;
+            /** @description Expenses in this category and its subcategories, in the base currency. */
+            spent_minor: number;
+        };
+        BudgetMonth: {
+            month: string;
+            base_currency: string;
+            items: components["schemas"]["BudgetLine"][];
+        };
+        BudgetInput: {
+            /** Format: uuid */
+            category_id: string;
+            /** @description Any day in the month. */
+            month: string;
+            amount_minor: number;
+        };
+        Rate: {
+            currency: string;
+            rate_on: string;
+            /** @description One unit of the currency, in base-currency major units, times 10^8. */
+            rate_e8: number;
+        };
+        RateInput: {
+            currency: string;
+            rate_on: string;
+            rate_e8: number;
+        };
+        RateList: {
+            items: components["schemas"]["Rate"][];
+        };
+        MoneySummary: {
+            month: string;
+            base_currency: string;
+            /** @description All account balances in the base currency. Accounts whose currency has no rate are left out and listed in missing_rates. */
+            net_worth_minor: number;
+            income_minor: number;
+            /** @description Positive total of this month's expenses, in the base currency. */
+            expense_minor: number;
+            overspent_categories: number;
+            accounts: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                currency: string;
+                balance_minor: number;
+                /** @description The balance in the base currency, when a rate is known. */
+                base_minor?: number;
+            }[];
+            missing_rates: string[];
         };
         Meta: {
             /** @example Soma */
@@ -937,6 +1307,494 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SelfProfile"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCurrencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The currency list. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrencyList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMoneySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The settings. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoneySettings"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateMoneySettings: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated settings. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoneySettings"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The accounts. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountInput"];
+            };
+        };
+        responses: {
+            /** @description The new account. */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The account. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Moved to the trash. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateAccount: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated account. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The categories. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CategoryList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CategoryInput"];
+            };
+        };
+        responses: {
+            /** @description The new category. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Category"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listTransactions: {
+        parameters: {
+            query?: {
+                limit?: number;
+                /** @description Pass `next_cursor` back to get the next page. */
+                cursor?: string;
+                account_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of transactions. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransactionInput"];
+            };
+        };
+        responses: {
+            /** @description The recorded transaction (for a transfer, the outgoing side). */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transaction"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The transaction. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transaction"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteTransaction: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Moved to the trash. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateTransaction: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated transaction. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Transaction"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getBudgets: {
+        parameters: {
+            query?: {
+                /** @description Any day in the month, YYYY-MM-DD. Defaults to this month. */
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The month's budget lines. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetMonth"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BudgetInput"];
+            };
+        };
+        responses: {
+            /** @description The budget line after the change. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BudgetLine"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listRates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rates. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    setRate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RateInput"];
+            };
+        };
+        responses: {
+            /** @description The stored rate. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rate"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMoneySummary: {
+        parameters: {
+            query?: {
+                /** @description Any day in the month, YYYY-MM-DD. Defaults to this month. */
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The summary. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MoneySummary"];
                 };
             };
             default: components["responses"]["Problem"];

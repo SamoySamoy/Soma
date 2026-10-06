@@ -18,7 +18,7 @@ func TestAllows(t *testing.T) {
 		{"viewer reads people", RoleViewer, PeopleRead, true},
 		{"viewer cannot write people", RoleViewer, PeopleWrite, false},
 		{"unknown role grants nothing", Role("guest"), PeopleRead, false},
-		{"unknown permission is denied", RoleOwner, Permission("money:write"), false},
+		{"unknown permission is denied", RoleOwner, Permission("guests:read"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

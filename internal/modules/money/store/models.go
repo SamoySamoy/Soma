@@ -18,7 +18,7 @@ type Entity struct {
 	CreatedBy uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt *time.Time
+	DeletedAt pgtype.Timestamptz
 	Version   int32
 }
 
@@ -29,14 +29,14 @@ type FinAccount struct {
 	Kind         string
 	Currency     string
 	OpeningMinor int64
-	OpenedOn     pgtype.Date
+	OpenedOn     time.Time
 }
 
 type FinBudget struct {
 	ID          uuid.UUID
 	SpaceID     uuid.UUID
 	CategoryID  uuid.UUID
-	Month       pgtype.Date
+	Month       time.Time
 	AmountMinor int64
 }
 
@@ -52,7 +52,7 @@ type FinCategory struct {
 type FinRate struct {
 	SpaceID  uuid.UUID
 	Currency string
-	RateOn   pgtype.Date
+	RateOn   time.Time
 	RateE8   int64
 }
 
@@ -69,7 +69,7 @@ type FinTransaction struct {
 	AccountID   uuid.UUID
 	Kind        string
 	AmountMinor int64
-	OccurredOn  pgtype.Date
+	OccurredOn  time.Time
 	CategoryID  *uuid.UUID
 	Payee       *string
 	Notes       *string
@@ -80,7 +80,7 @@ type JournalEntry struct {
 	ID        uuid.UUID
 	SpaceID   uuid.UUID
 	AuthorID  uuid.UUID
-	EntryDate pgtype.Date
+	EntryDate time.Time
 	Title     *string
 	Body      string
 	Mood      pgtype.Int2
@@ -128,7 +128,7 @@ type Task struct {
 	Title       string
 	Notes       *string
 	DueOn       pgtype.Date
-	CompletedAt *time.Time
+	CompletedAt pgtype.Timestamptz
 }
 
 type User struct {

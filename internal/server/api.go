@@ -7,6 +7,7 @@ import (
 	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
 	"github.com/SamoySamoy/Soma/internal/modules/journal"
+	"github.com/SamoySamoy/Soma/internal/modules/money"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/modules/self"
 	"github.com/SamoySamoy/Soma/internal/modules/tasks"
@@ -23,6 +24,7 @@ type api struct {
 	journal *journal.Handler
 	tasks   *tasks.Handler
 	self    *self.Handler
+	money   *money.Handler
 }
 
 var _ apigen.StrictServerInterface = (*api)(nil)
@@ -134,4 +136,104 @@ func (a *api) GetSelfProfile(ctx context.Context, req apigen.GetSelfProfileReque
 // UpdateSelfProfile implements apigen.StrictServerInterface.
 func (a *api) UpdateSelfProfile(ctx context.Context, req apigen.UpdateSelfProfileRequestObject) (apigen.UpdateSelfProfileResponseObject, error) {
 	return a.self.UpdateSelfProfile(ctx, req)
+}
+
+// ListCurrencies implements apigen.StrictServerInterface.
+func (a *api) ListCurrencies(ctx context.Context, req apigen.ListCurrenciesRequestObject) (apigen.ListCurrenciesResponseObject, error) {
+	return a.money.ListCurrencies(ctx, req)
+}
+
+// GetMoneySettings implements apigen.StrictServerInterface.
+func (a *api) GetMoneySettings(ctx context.Context, req apigen.GetMoneySettingsRequestObject) (apigen.GetMoneySettingsResponseObject, error) {
+	return a.money.GetMoneySettings(ctx, req)
+}
+
+// UpdateMoneySettings implements apigen.StrictServerInterface.
+func (a *api) UpdateMoneySettings(ctx context.Context, req apigen.UpdateMoneySettingsRequestObject) (apigen.UpdateMoneySettingsResponseObject, error) {
+	return a.money.UpdateMoneySettings(ctx, req)
+}
+
+// ListAccounts implements apigen.StrictServerInterface.
+func (a *api) ListAccounts(ctx context.Context, req apigen.ListAccountsRequestObject) (apigen.ListAccountsResponseObject, error) {
+	return a.money.ListAccounts(ctx, req)
+}
+
+// CreateAccount implements apigen.StrictServerInterface.
+func (a *api) CreateAccount(ctx context.Context, req apigen.CreateAccountRequestObject) (apigen.CreateAccountResponseObject, error) {
+	return a.money.CreateAccount(ctx, req)
+}
+
+// GetAccount implements apigen.StrictServerInterface.
+func (a *api) GetAccount(ctx context.Context, req apigen.GetAccountRequestObject) (apigen.GetAccountResponseObject, error) {
+	return a.money.GetAccount(ctx, req)
+}
+
+// UpdateAccount implements apigen.StrictServerInterface.
+func (a *api) UpdateAccount(ctx context.Context, req apigen.UpdateAccountRequestObject) (apigen.UpdateAccountResponseObject, error) {
+	return a.money.UpdateAccount(ctx, req)
+}
+
+// DeleteAccount implements apigen.StrictServerInterface.
+func (a *api) DeleteAccount(ctx context.Context, req apigen.DeleteAccountRequestObject) (apigen.DeleteAccountResponseObject, error) {
+	return a.money.DeleteAccount(ctx, req)
+}
+
+// ListCategories implements apigen.StrictServerInterface.
+func (a *api) ListCategories(ctx context.Context, req apigen.ListCategoriesRequestObject) (apigen.ListCategoriesResponseObject, error) {
+	return a.money.ListCategories(ctx, req)
+}
+
+// CreateCategory implements apigen.StrictServerInterface.
+func (a *api) CreateCategory(ctx context.Context, req apigen.CreateCategoryRequestObject) (apigen.CreateCategoryResponseObject, error) {
+	return a.money.CreateCategory(ctx, req)
+}
+
+// ListTransactions implements apigen.StrictServerInterface.
+func (a *api) ListTransactions(ctx context.Context, req apigen.ListTransactionsRequestObject) (apigen.ListTransactionsResponseObject, error) {
+	return a.money.ListTransactions(ctx, req)
+}
+
+// CreateTransaction implements apigen.StrictServerInterface.
+func (a *api) CreateTransaction(ctx context.Context, req apigen.CreateTransactionRequestObject) (apigen.CreateTransactionResponseObject, error) {
+	return a.money.CreateTransaction(ctx, req)
+}
+
+// GetTransaction implements apigen.StrictServerInterface.
+func (a *api) GetTransaction(ctx context.Context, req apigen.GetTransactionRequestObject) (apigen.GetTransactionResponseObject, error) {
+	return a.money.GetTransaction(ctx, req)
+}
+
+// UpdateTransaction implements apigen.StrictServerInterface.
+func (a *api) UpdateTransaction(ctx context.Context, req apigen.UpdateTransactionRequestObject) (apigen.UpdateTransactionResponseObject, error) {
+	return a.money.UpdateTransaction(ctx, req)
+}
+
+// DeleteTransaction implements apigen.StrictServerInterface.
+func (a *api) DeleteTransaction(ctx context.Context, req apigen.DeleteTransactionRequestObject) (apigen.DeleteTransactionResponseObject, error) {
+	return a.money.DeleteTransaction(ctx, req)
+}
+
+// GetBudgets implements apigen.StrictServerInterface.
+func (a *api) GetBudgets(ctx context.Context, req apigen.GetBudgetsRequestObject) (apigen.GetBudgetsResponseObject, error) {
+	return a.money.GetBudgets(ctx, req)
+}
+
+// SetBudget implements apigen.StrictServerInterface.
+func (a *api) SetBudget(ctx context.Context, req apigen.SetBudgetRequestObject) (apigen.SetBudgetResponseObject, error) {
+	return a.money.SetBudget(ctx, req)
+}
+
+// ListRates implements apigen.StrictServerInterface.
+func (a *api) ListRates(ctx context.Context, req apigen.ListRatesRequestObject) (apigen.ListRatesResponseObject, error) {
+	return a.money.ListRates(ctx, req)
+}
+
+// SetRate implements apigen.StrictServerInterface.
+func (a *api) SetRate(ctx context.Context, req apigen.SetRateRequestObject) (apigen.SetRateResponseObject, error) {
+	return a.money.SetRate(ctx, req)
+}
+
+// GetMoneySummary implements apigen.StrictServerInterface.
+func (a *api) GetMoneySummary(ctx context.Context, req apigen.GetMoneySummaryRequestObject) (apigen.GetMoneySummaryResponseObject, error) {
+	return a.money.GetMoneySummary(ctx, req)
 }

@@ -24,6 +24,66 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AccountKind.
+const (
+	AccountKindBank       AccountKind = "bank"
+	AccountKindCash       AccountKind = "cash"
+	AccountKindCreditCard AccountKind = "credit_card"
+	AccountKindEWallet    AccountKind = "e_wallet"
+	AccountKindInvestment AccountKind = "investment"
+	AccountKindLoan       AccountKind = "loan"
+)
+
+// Valid indicates whether the value is a known member of the AccountKind enum.
+func (e AccountKind) Valid() bool {
+	switch e {
+	case AccountKindBank:
+		return true
+	case AccountKindCash:
+		return true
+	case AccountKindCreditCard:
+		return true
+	case AccountKindEWallet:
+		return true
+	case AccountKindInvestment:
+		return true
+	case AccountKindLoan:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for AccountInputKind.
+const (
+	AccountInputKindBank       AccountInputKind = "bank"
+	AccountInputKindCash       AccountInputKind = "cash"
+	AccountInputKindCreditCard AccountInputKind = "credit_card"
+	AccountInputKindEWallet    AccountInputKind = "e_wallet"
+	AccountInputKindInvestment AccountInputKind = "investment"
+	AccountInputKindLoan       AccountInputKind = "loan"
+)
+
+// Valid indicates whether the value is a known member of the AccountInputKind enum.
+func (e AccountInputKind) Valid() bool {
+	switch e {
+	case AccountInputKindBank:
+		return true
+	case AccountInputKindCash:
+		return true
+	case AccountInputKindCreditCard:
+		return true
+	case AccountInputKindEWallet:
+		return true
+	case AccountInputKindInvestment:
+		return true
+	case AccountInputKindLoan:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for BodyAreaKey.
 const (
 	Body             BodyAreaKey = "body"
@@ -114,6 +174,42 @@ func (e BodyAreaStatus) Valid() bool {
 	}
 }
 
+// Defines values for CategoryKind.
+const (
+	CategoryKindExpense CategoryKind = "expense"
+	CategoryKindIncome  CategoryKind = "income"
+)
+
+// Valid indicates whether the value is a known member of the CategoryKind enum.
+func (e CategoryKind) Valid() bool {
+	switch e {
+	case CategoryKindExpense:
+		return true
+	case CategoryKindIncome:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CategoryInputKind.
+const (
+	CategoryInputKindExpense CategoryInputKind = "expense"
+	CategoryInputKindIncome  CategoryInputKind = "income"
+)
+
+// Valid indicates whether the value is a known member of the CategoryInputKind enum.
+func (e CategoryInputKind) Valid() bool {
+	switch e {
+	case CategoryInputKindExpense:
+		return true
+	case CategoryInputKindIncome:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MetaMode.
 const (
 	Local   MetaMode = "local"
@@ -133,6 +229,91 @@ func (e MetaMode) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Defines values for TransactionKind.
+const (
+	TransactionKindAdjustment  TransactionKind = "adjustment"
+	TransactionKindExpense     TransactionKind = "expense"
+	TransactionKindIncome      TransactionKind = "income"
+	TransactionKindTransferIn  TransactionKind = "transfer_in"
+	TransactionKindTransferOut TransactionKind = "transfer_out"
+)
+
+// Valid indicates whether the value is a known member of the TransactionKind enum.
+func (e TransactionKind) Valid() bool {
+	switch e {
+	case TransactionKindAdjustment:
+		return true
+	case TransactionKindExpense:
+		return true
+	case TransactionKindIncome:
+		return true
+	case TransactionKindTransferIn:
+		return true
+	case TransactionKindTransferOut:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TransactionInputKind.
+const (
+	TransactionInputKindExpense  TransactionInputKind = "expense"
+	TransactionInputKindIncome   TransactionInputKind = "income"
+	TransactionInputKindTransfer TransactionInputKind = "transfer"
+)
+
+// Valid indicates whether the value is a known member of the TransactionInputKind enum.
+func (e TransactionInputKind) Valid() bool {
+	switch e {
+	case TransactionInputKindExpense:
+		return true
+	case TransactionInputKindIncome:
+		return true
+	case TransactionInputKindTransfer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Account defines model for Account.
+type Account struct {
+	// BalanceMinor Opening balance plus every transaction, in minor units.
+	BalanceMinor int                `json:"balance_minor"`
+	CreatedAt    time.Time          `json:"created_at"`
+	Currency     string             `json:"currency"`
+	Id           openapi_types.UUID `json:"id"`
+	Kind         AccountKind        `json:"kind"`
+	Name         string             `json:"name"`
+	OpenedOn     string             `json:"opened_on"`
+
+	// OpeningMinor Balance before the first recorded transaction, in minor units. A loan is entered as a negative amount.
+	OpeningMinor int       `json:"opening_minor"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Version      int       `json:"version"`
+}
+
+// AccountKind defines model for Account.Kind.
+type AccountKind string
+
+// AccountInput defines model for AccountInput.
+type AccountInput struct {
+	Currency     string           `json:"currency"`
+	Kind         AccountInputKind `json:"kind"`
+	Name         string           `json:"name"`
+	OpenedOn     string           `json:"opened_on"`
+	OpeningMinor *int             `json:"opening_minor,omitempty"`
+}
+
+// AccountInputKind defines model for AccountInput.Kind.
+type AccountInputKind string
+
+// AccountList defines model for AccountList.
+type AccountList struct {
+	Items []Account `json:"items"`
 }
 
 // BodyArea defines model for BodyArea.
@@ -162,6 +343,60 @@ type BodyAreaStatus string
 type BodyMap struct {
 	Areas []BodyArea `json:"areas"`
 	AsOf  time.Time  `json:"as_of"`
+}
+
+// BudgetInput defines model for BudgetInput.
+type BudgetInput struct {
+	AmountMinor int                `json:"amount_minor"`
+	CategoryId  openapi_types.UUID `json:"category_id"`
+
+	// Month Any day in the month.
+	Month string `json:"month"`
+}
+
+// BudgetLine defines model for BudgetLine.
+type BudgetLine struct {
+	// BudgetMinor The budget for the month, in the base currency. 0 means none set.
+	BudgetMinor int                 `json:"budget_minor"`
+	CategoryId  openapi_types.UUID  `json:"category_id"`
+	Name        string              `json:"name"`
+	ParentId    *openapi_types.UUID `json:"parent_id,omitempty"`
+
+	// SpentMinor Expenses in this category and its subcategories, in the base currency.
+	SpentMinor int `json:"spent_minor"`
+}
+
+// BudgetMonth defines model for BudgetMonth.
+type BudgetMonth struct {
+	BaseCurrency string       `json:"base_currency"`
+	Items        []BudgetLine `json:"items"`
+	Month        string       `json:"month"`
+}
+
+// Category defines model for Category.
+type Category struct {
+	Id       openapi_types.UUID  `json:"id"`
+	Kind     CategoryKind        `json:"kind"`
+	Name     string              `json:"name"`
+	ParentId *openapi_types.UUID `json:"parent_id,omitempty"`
+}
+
+// CategoryKind defines model for Category.Kind.
+type CategoryKind string
+
+// CategoryInput defines model for CategoryInput.
+type CategoryInput struct {
+	Kind     CategoryInputKind   `json:"kind"`
+	Name     string              `json:"name"`
+	ParentId *openapi_types.UUID `json:"parent_id,omitempty"`
+}
+
+// CategoryInputKind defines model for CategoryInput.Kind.
+type CategoryInputKind string
+
+// CategoryList defines model for CategoryList.
+type CategoryList struct {
+	Items []Category `json:"items"`
 }
 
 // Contact defines model for Contact.
@@ -201,6 +436,19 @@ type ContactList struct {
 
 // ContactPatch Fields to change. A `null` value clears the field.
 type ContactPatch map[string]*string
+
+// Currency defines model for Currency.
+type Currency struct {
+	Code string `json:"code"`
+
+	// Digits Digits after the decimal point, for display and input.
+	Digits int `json:"digits"`
+}
+
+// CurrencyList defines model for CurrencyList.
+type CurrencyList struct {
+	Items []Currency `json:"items"`
+}
 
 // JournalEntry defines model for JournalEntry.
 type JournalEntry struct {
@@ -249,6 +497,37 @@ type Meta struct {
 // MetaMode defines model for Meta.Mode.
 type MetaMode string
 
+// MoneySettings defines model for MoneySettings.
+type MoneySettings struct {
+	BaseCurrency string    `json:"base_currency"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	Version      int       `json:"version"`
+}
+
+// MoneySummary defines model for MoneySummary.
+type MoneySummary struct {
+	Accounts []struct {
+		BalanceMinor int `json:"balance_minor"`
+
+		// BaseMinor The balance in the base currency, when a rate is known.
+		BaseMinor *int               `json:"base_minor,omitempty"`
+		Currency  string             `json:"currency"`
+		Id        openapi_types.UUID `json:"id"`
+		Name      string             `json:"name"`
+	} `json:"accounts"`
+	BaseCurrency string `json:"base_currency"`
+
+	// ExpenseMinor Positive total of this month's expenses, in the base currency.
+	ExpenseMinor int      `json:"expense_minor"`
+	IncomeMinor  int      `json:"income_minor"`
+	MissingRates []string `json:"missing_rates"`
+	Month        string   `json:"month"`
+
+	// NetWorthMinor All account balances in the base currency. Accounts whose currency has no rate are left out and listed in missing_rates.
+	NetWorthMinor       int `json:"net_worth_minor"`
+	OverspentCategories int `json:"overspent_categories"`
+}
+
 // Problem RFC 9457 problem details.
 type Problem struct {
 	// Code Stable machine-readable error code.
@@ -270,6 +549,27 @@ type Problem struct {
 
 	// Type Example: about:blank
 	Type string `json:"type"`
+}
+
+// Rate defines model for Rate.
+type Rate struct {
+	Currency string `json:"currency"`
+
+	// RateE8 One unit of the currency, in base-currency major units, times 10^8.
+	RateE8 int    `json:"rate_e8"`
+	RateOn string `json:"rate_on"`
+}
+
+// RateInput defines model for RateInput.
+type RateInput struct {
+	Currency string `json:"currency"`
+	RateE8   int    `json:"rate_e8"`
+	RateOn   string `json:"rate_on"`
+}
+
+// RateList defines model for RateList.
+type RateList struct {
+	Items []Rate `json:"items"`
 }
 
 // SelfProfile defines model for SelfProfile.
@@ -313,6 +613,52 @@ type TaskList struct {
 	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
 }
 
+// Transaction defines model for Transaction.
+type Transaction struct {
+	AccountId openapi_types.UUID `json:"account_id"`
+
+	// AmountMinor Signed: income and transfers in are positive, expenses and transfers out negative.
+	AmountMinor int                 `json:"amount_minor"`
+	CategoryId  *openapi_types.UUID `json:"category_id,omitempty"`
+	CreatedAt   time.Time           `json:"created_at"`
+	Id          openapi_types.UUID  `json:"id"`
+	Kind        TransactionKind     `json:"kind"`
+	Notes       *string             `json:"notes,omitempty"`
+	OccurredOn  string              `json:"occurred_on"`
+	Payee       *string             `json:"payee,omitempty"`
+
+	// TransferId Shared by the two sides of a transfer.
+	TransferId *openapi_types.UUID `json:"transfer_id,omitempty"`
+	UpdatedAt  time.Time           `json:"updated_at"`
+	Version    int                 `json:"version"`
+}
+
+// TransactionKind defines model for Transaction.Kind.
+type TransactionKind string
+
+// TransactionInput defines model for TransactionInput.
+type TransactionInput struct {
+	AccountId   openapi_types.UUID   `json:"account_id"`
+	AmountMinor int                  `json:"amount_minor"`
+	CategoryId  *openapi_types.UUID  `json:"category_id,omitempty"`
+	Kind        TransactionInputKind `json:"kind"`
+	Notes       *string              `json:"notes,omitempty"`
+	OccurredOn  string               `json:"occurred_on"`
+	Payee       *string              `json:"payee,omitempty"`
+
+	// ToAccountId The receiving account, for a transfer.
+	ToAccountId *openapi_types.UUID `json:"to_account_id,omitempty"`
+}
+
+// TransactionInputKind defines model for TransactionInput.Kind.
+type TransactionInputKind string
+
+// TransactionList defines model for TransactionList.
+type TransactionList struct {
+	Items      []Transaction `json:"items"`
+	NextCursor *string       `json:"next_cursor,omitempty"`
+}
+
 // ContactId defines model for ContactId.
 type ContactId = openapi_types.UUID
 
@@ -330,6 +676,45 @@ type ListJournalEntriesParams struct {
 
 // UpdateJournalEntryParams defines parameters for UpdateJournalEntry.
 type UpdateJournalEntryParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
+
+// UpdateAccountParams defines parameters for UpdateAccount.
+type UpdateAccountParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
+
+// GetBudgetsParams defines parameters for GetBudgets.
+type GetBudgetsParams struct {
+	// Month Any day in the month, YYYY-MM-DD. Defaults to this month.
+	Month *string `form:"month,omitempty" json:"month,omitempty"`
+}
+
+// UpdateMoneySettingsParams defines parameters for UpdateMoneySettings.
+type UpdateMoneySettingsParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
+
+// GetMoneySummaryParams defines parameters for GetMoneySummary.
+type GetMoneySummaryParams struct {
+	// Month Any day in the month, YYYY-MM-DD. Defaults to this month.
+	Month *string `form:"month,omitempty" json:"month,omitempty"`
+}
+
+// ListTransactionsParams defines parameters for ListTransactions.
+type ListTransactionsParams struct {
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Pass `next_cursor` back to get the next page.
+	Cursor    *string             `form:"cursor,omitempty" json:"cursor,omitempty"`
+	AccountId *openapi_types.UUID `form:"account_id,omitempty" json:"account_id,omitempty"`
+}
+
+// UpdateTransactionParams defines parameters for UpdateTransaction.
+type UpdateTransactionParams struct {
 	// IfMatch The ETag of the version being edited, for example "3".
 	IfMatch *IfMatch `json:"If-Match,omitempty"`
 }
@@ -371,6 +756,30 @@ type CreateJournalEntryJSONRequestBody = JournalEntryInput
 // UpdateJournalEntryJSONRequestBody defines body for UpdateJournalEntry for application/json ContentType.
 type UpdateJournalEntryJSONRequestBody = MergePatch
 
+// CreateAccountJSONRequestBody defines body for CreateAccount for application/json ContentType.
+type CreateAccountJSONRequestBody = AccountInput
+
+// UpdateAccountJSONRequestBody defines body for UpdateAccount for application/json ContentType.
+type UpdateAccountJSONRequestBody = MergePatch
+
+// SetBudgetJSONRequestBody defines body for SetBudget for application/json ContentType.
+type SetBudgetJSONRequestBody = BudgetInput
+
+// CreateCategoryJSONRequestBody defines body for CreateCategory for application/json ContentType.
+type CreateCategoryJSONRequestBody = CategoryInput
+
+// SetRateJSONRequestBody defines body for SetRate for application/json ContentType.
+type SetRateJSONRequestBody = RateInput
+
+// UpdateMoneySettingsJSONRequestBody defines body for UpdateMoneySettings for application/json ContentType.
+type UpdateMoneySettingsJSONRequestBody = MergePatch
+
+// CreateTransactionJSONRequestBody defines body for CreateTransaction for application/json ContentType.
+type CreateTransactionJSONRequestBody = TransactionInput
+
+// UpdateTransactionJSONRequestBody defines body for UpdateTransaction for application/json ContentType.
+type UpdateTransactionJSONRequestBody = MergePatch
+
 // CreateContactJSONRequestBody defines body for CreateContact for application/json ContentType.
 type CreateContactJSONRequestBody = ContactInput
 
@@ -409,6 +818,66 @@ type ServerInterface interface {
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(w http.ResponseWriter, r *http.Request)
+	// ListAccounts List accounts with their balances
+	// (GET /api/v1/money/accounts)
+	ListAccounts(w http.ResponseWriter, r *http.Request)
+	// CreateAccount Add an account
+	// (POST /api/v1/money/accounts)
+	CreateAccount(w http.ResponseWriter, r *http.Request)
+	// DeleteAccount Move an account to the trash
+	// (DELETE /api/v1/money/accounts/{id})
+	DeleteAccount(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// GetAccount Read an account
+	// (GET /api/v1/money/accounts/{id})
+	GetAccount(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// UpdateAccount Edit an account
+	// (PATCH /api/v1/money/accounts/{id})
+	UpdateAccount(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateAccountParams)
+	// GetBudgets Budgets and spending for a month
+	// (GET /api/v1/money/budgets)
+	GetBudgets(w http.ResponseWriter, r *http.Request, params GetBudgetsParams)
+	// SetBudget Set a category's budget for a month
+	// (PUT /api/v1/money/budgets)
+	SetBudget(w http.ResponseWriter, r *http.Request)
+	// ListCategories List categories (a two-level tree)
+	// (GET /api/v1/money/categories)
+	ListCategories(w http.ResponseWriter, r *http.Request)
+	// CreateCategory Add a category
+	// (POST /api/v1/money/categories)
+	CreateCategory(w http.ResponseWriter, r *http.Request)
+	// ListCurrencies Currencies you can use, with their minor-unit digits
+	// (GET /api/v1/money/currencies)
+	ListCurrencies(w http.ResponseWriter, r *http.Request)
+	// ListRates The latest exchange rate per currency
+	// (GET /api/v1/money/rates)
+	ListRates(w http.ResponseWriter, r *http.Request)
+	// SetRate Set the exchange rate for a currency on a day
+	// (PUT /api/v1/money/rates)
+	SetRate(w http.ResponseWriter, r *http.Request)
+	// GetMoneySettings Read the money settings
+	// (GET /api/v1/money/settings)
+	GetMoneySettings(w http.ResponseWriter, r *http.Request)
+	// UpdateMoneySettings Change the base currency
+	// (PATCH /api/v1/money/settings)
+	UpdateMoneySettings(w http.ResponseWriter, r *http.Request, params UpdateMoneySettingsParams)
+	// GetMoneySummary Net worth and the month's totals, in the base currency
+	// (GET /api/v1/money/summary)
+	GetMoneySummary(w http.ResponseWriter, r *http.Request, params GetMoneySummaryParams)
+	// ListTransactions List transactions, newest first
+	// (GET /api/v1/money/transactions)
+	ListTransactions(w http.ResponseWriter, r *http.Request, params ListTransactionsParams)
+	// CreateTransaction Record an income, an expense or a transfer
+	// (POST /api/v1/money/transactions)
+	CreateTransaction(w http.ResponseWriter, r *http.Request)
+	// DeleteTransaction Move a transaction to the trash
+	// (DELETE /api/v1/money/transactions/{id})
+	DeleteTransaction(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// GetTransaction Read a transaction
+	// (GET /api/v1/money/transactions/{id})
+	GetTransaction(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// UpdateTransaction Edit a transaction
+	// (PATCH /api/v1/money/transactions/{id})
+	UpdateTransaction(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateTransactionParams)
 	// ListContacts List contacts
 	// (GET /api/v1/people/contacts)
 	ListContacts(w http.ResponseWriter, r *http.Request, params ListContactsParams)
@@ -643,6 +1112,516 @@ func (siw *ServerInterfaceWrapper) GetMeta(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMeta(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAccounts operation middleware
+func (siw *ServerInterfaceWrapper) ListAccounts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAccounts(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAccount operation middleware
+func (siw *ServerInterfaceWrapper) CreateAccount(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAccount(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteAccount operation middleware
+func (siw *ServerInterfaceWrapper) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteAccount(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAccount operation middleware
+func (siw *ServerInterfaceWrapper) GetAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAccount(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateAccount operation middleware
+func (siw *ServerInterfaceWrapper) UpdateAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateAccountParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateAccount(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetBudgets operation middleware
+func (siw *ServerInterfaceWrapper) GetBudgets(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetBudgetsParams
+
+	// ------------- Optional query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "month", r.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "month"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "month", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetBudgets(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetBudget operation middleware
+func (siw *ServerInterfaceWrapper) SetBudget(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetBudget(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListCategories operation middleware
+func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCategories(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCategory operation middleware
+func (siw *ServerInterfaceWrapper) CreateCategory(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCategory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListCurrencies operation middleware
+func (siw *ServerInterfaceWrapper) ListCurrencies(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCurrencies(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListRates operation middleware
+func (siw *ServerInterfaceWrapper) ListRates(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListRates(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetRate operation middleware
+func (siw *ServerInterfaceWrapper) SetRate(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetRate(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMoneySettings operation middleware
+func (siw *ServerInterfaceWrapper) GetMoneySettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMoneySettings(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateMoneySettings operation middleware
+func (siw *ServerInterfaceWrapper) UpdateMoneySettings(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateMoneySettingsParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateMoneySettings(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetMoneySummary operation middleware
+func (siw *ServerInterfaceWrapper) GetMoneySummary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetMoneySummaryParams
+
+	// ------------- Optional query parameter "month" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "month", r.URL.Query(), &params.Month, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "month"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "month", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMoneySummary(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListTransactions operation middleware
+func (siw *ServerInterfaceWrapper) ListTransactions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTransactionsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "account_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "account_id", r.URL.Query(), &params.AccountId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "account_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "account_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListTransactions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTransaction operation middleware
+func (siw *ServerInterfaceWrapper) CreateTransaction(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTransaction(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteTransaction operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteTransaction(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTransaction operation middleware
+func (siw *ServerInterfaceWrapper) GetTransaction(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTransaction(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateTransaction operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTransaction(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateTransactionParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateTransaction(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1237,6 +2216,26 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/tasks/{id}/reopen", wrapper.ReopenTask)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/self", wrapper.GetSelfProfile)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/self", wrapper.UpdateSelfProfile)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/currencies", wrapper.ListCurrencies)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/settings", wrapper.GetMoneySettings)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/money/settings", wrapper.UpdateMoneySettings)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/accounts", wrapper.ListAccounts)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/money/accounts", wrapper.CreateAccount)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/money/accounts/{id}", wrapper.DeleteAccount)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/accounts/{id}", wrapper.GetAccount)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/money/accounts/{id}", wrapper.UpdateAccount)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/categories", wrapper.ListCategories)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/money/categories", wrapper.CreateCategory)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/transactions", wrapper.ListTransactions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/money/transactions", wrapper.CreateTransaction)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/money/transactions/{id}", wrapper.DeleteTransaction)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/transactions/{id}", wrapper.GetTransaction)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/money/transactions/{id}", wrapper.UpdateTransaction)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/budgets", wrapper.GetBudgets)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/api/v1/money/budgets", wrapper.SetBudget)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/rates", wrapper.ListRates)
+	m.HandleFunc(http.MethodPut+" "+options.BaseURL+"/api/v1/money/rates", wrapper.SetRate)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/money/summary", wrapper.GetMoneySummary)
 
 	return m
 }
@@ -1529,6 +2528,854 @@ type GetMetadefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response GetMetadefaultApplicationProblemPlusJSONResponse) VisitGetMetaResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccountsRequestObject struct {
+}
+
+type ListAccountsResponseObject interface {
+	VisitListAccountsResponse(w http.ResponseWriter) error
+}
+
+type ListAccounts200JSONResponse AccountList
+
+func (response ListAccounts200JSONResponse) VisitListAccountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListAccountsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListAccountsdefaultApplicationProblemPlusJSONResponse) VisitListAccountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAccountRequestObject struct {
+	Body *CreateAccountJSONRequestBody
+}
+
+type CreateAccountResponseObject interface {
+	VisitCreateAccountResponse(w http.ResponseWriter) error
+}
+
+type CreateAccount201ResponseHeaders struct {
+	ETag *string
+}
+
+type CreateAccount201JSONResponse struct {
+	Body    Account
+	Headers CreateAccount201ResponseHeaders
+}
+
+func (response CreateAccount201JSONResponse) VisitCreateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateAccountdefaultApplicationProblemPlusJSONResponse) VisitCreateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteAccountRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type DeleteAccountResponseObject interface {
+	VisitDeleteAccountResponse(w http.ResponseWriter) error
+}
+
+type DeleteAccount204Response struct {
+}
+
+func (response DeleteAccount204Response) VisitDeleteAccountResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteAccountdefaultApplicationProblemPlusJSONResponse) VisitDeleteAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAccountRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type GetAccountResponseObject interface {
+	VisitGetAccountResponse(w http.ResponseWriter) error
+}
+
+type GetAccount200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetAccount200JSONResponse struct {
+	Body    Account
+	Headers GetAccount200ResponseHeaders
+}
+
+func (response GetAccount200JSONResponse) VisitGetAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAccountdefaultApplicationProblemPlusJSONResponse) VisitGetAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAccountRequestObject struct {
+	Id     ResourceId `json:"id"`
+	Params UpdateAccountParams
+	Body   *UpdateAccountJSONRequestBody
+}
+
+type UpdateAccountResponseObject interface {
+	VisitUpdateAccountResponse(w http.ResponseWriter) error
+}
+
+type UpdateAccount200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateAccount200JSONResponse struct {
+	Body    Account
+	Headers UpdateAccount200ResponseHeaders
+}
+
+func (response UpdateAccount200JSONResponse) VisitUpdateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateAccountdefaultApplicationProblemPlusJSONResponse) VisitUpdateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBudgetsRequestObject struct {
+	Params GetBudgetsParams
+}
+
+type GetBudgetsResponseObject interface {
+	VisitGetBudgetsResponse(w http.ResponseWriter) error
+}
+
+type GetBudgets200JSONResponse BudgetMonth
+
+func (response GetBudgets200JSONResponse) VisitGetBudgetsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBudgetsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetBudgetsdefaultApplicationProblemPlusJSONResponse) VisitGetBudgetsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetBudgetRequestObject struct {
+	Body *SetBudgetJSONRequestBody
+}
+
+type SetBudgetResponseObject interface {
+	VisitSetBudgetResponse(w http.ResponseWriter) error
+}
+
+type SetBudget200JSONResponse BudgetLine
+
+func (response SetBudget200JSONResponse) VisitSetBudgetResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetBudgetdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SetBudgetdefaultApplicationProblemPlusJSONResponse) VisitSetBudgetResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCategoriesRequestObject struct {
+}
+
+type ListCategoriesResponseObject interface {
+	VisitListCategoriesResponse(w http.ResponseWriter) error
+}
+
+type ListCategories200JSONResponse CategoryList
+
+func (response ListCategories200JSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCategoriesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListCategoriesdefaultApplicationProblemPlusJSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategoryRequestObject struct {
+	Body *CreateCategoryJSONRequestBody
+}
+
+type CreateCategoryResponseObject interface {
+	VisitCreateCategoryResponse(w http.ResponseWriter) error
+}
+
+type CreateCategory201JSONResponse Category
+
+func (response CreateCategory201JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateCategorydefaultApplicationProblemPlusJSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCurrenciesRequestObject struct {
+}
+
+type ListCurrenciesResponseObject interface {
+	VisitListCurrenciesResponse(w http.ResponseWriter) error
+}
+
+type ListCurrencies200JSONResponse CurrencyList
+
+func (response ListCurrencies200JSONResponse) VisitListCurrenciesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCurrenciesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListCurrenciesdefaultApplicationProblemPlusJSONResponse) VisitListCurrenciesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListRatesRequestObject struct {
+}
+
+type ListRatesResponseObject interface {
+	VisitListRatesResponse(w http.ResponseWriter) error
+}
+
+type ListRates200JSONResponse RateList
+
+func (response ListRates200JSONResponse) VisitListRatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListRatesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListRatesdefaultApplicationProblemPlusJSONResponse) VisitListRatesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetRateRequestObject struct {
+	Body *SetRateJSONRequestBody
+}
+
+type SetRateResponseObject interface {
+	VisitSetRateResponse(w http.ResponseWriter) error
+}
+
+type SetRate200JSONResponse Rate
+
+func (response SetRate200JSONResponse) VisitSetRateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SetRatedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SetRatedefaultApplicationProblemPlusJSONResponse) VisitSetRateResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMoneySettingsRequestObject struct {
+}
+
+type GetMoneySettingsResponseObject interface {
+	VisitGetMoneySettingsResponse(w http.ResponseWriter) error
+}
+
+type GetMoneySettings200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetMoneySettings200JSONResponse struct {
+	Body    MoneySettings
+	Headers GetMoneySettings200ResponseHeaders
+}
+
+func (response GetMoneySettings200JSONResponse) VisitGetMoneySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMoneySettingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMoneySettingsdefaultApplicationProblemPlusJSONResponse) VisitGetMoneySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateMoneySettingsRequestObject struct {
+	Params UpdateMoneySettingsParams
+	Body   *UpdateMoneySettingsJSONRequestBody
+}
+
+type UpdateMoneySettingsResponseObject interface {
+	VisitUpdateMoneySettingsResponse(w http.ResponseWriter) error
+}
+
+type UpdateMoneySettings200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateMoneySettings200JSONResponse struct {
+	Body    MoneySettings
+	Headers UpdateMoneySettings200ResponseHeaders
+}
+
+func (response UpdateMoneySettings200JSONResponse) VisitUpdateMoneySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateMoneySettingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateMoneySettingsdefaultApplicationProblemPlusJSONResponse) VisitUpdateMoneySettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMoneySummaryRequestObject struct {
+	Params GetMoneySummaryParams
+}
+
+type GetMoneySummaryResponseObject interface {
+	VisitGetMoneySummaryResponse(w http.ResponseWriter) error
+}
+
+type GetMoneySummary200JSONResponse MoneySummary
+
+func (response GetMoneySummary200JSONResponse) VisitGetMoneySummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMoneySummarydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMoneySummarydefaultApplicationProblemPlusJSONResponse) VisitGetMoneySummaryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTransactionsRequestObject struct {
+	Params ListTransactionsParams
+}
+
+type ListTransactionsResponseObject interface {
+	VisitListTransactionsResponse(w http.ResponseWriter) error
+}
+
+type ListTransactions200JSONResponse TransactionList
+
+func (response ListTransactions200JSONResponse) VisitListTransactionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTransactionsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListTransactionsdefaultApplicationProblemPlusJSONResponse) VisitListTransactionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTransactionRequestObject struct {
+	Body *CreateTransactionJSONRequestBody
+}
+
+type CreateTransactionResponseObject interface {
+	VisitCreateTransactionResponse(w http.ResponseWriter) error
+}
+
+type CreateTransaction201ResponseHeaders struct {
+	ETag *string
+}
+
+type CreateTransaction201JSONResponse struct {
+	Body    Transaction
+	Headers CreateTransaction201ResponseHeaders
+}
+
+func (response CreateTransaction201JSONResponse) VisitCreateTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTransactiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateTransactiondefaultApplicationProblemPlusJSONResponse) VisitCreateTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTransactionRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type DeleteTransactionResponseObject interface {
+	VisitDeleteTransactionResponse(w http.ResponseWriter) error
+}
+
+type DeleteTransaction204Response struct {
+}
+
+func (response DeleteTransaction204Response) VisitDeleteTransactionResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteTransactiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteTransactiondefaultApplicationProblemPlusJSONResponse) VisitDeleteTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTransactionRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type GetTransactionResponseObject interface {
+	VisitGetTransactionResponse(w http.ResponseWriter) error
+}
+
+type GetTransaction200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetTransaction200JSONResponse struct {
+	Body    Transaction
+	Headers GetTransaction200ResponseHeaders
+}
+
+func (response GetTransaction200JSONResponse) VisitGetTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTransactiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetTransactiondefaultApplicationProblemPlusJSONResponse) VisitGetTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTransactionRequestObject struct {
+	Id     ResourceId `json:"id"`
+	Params UpdateTransactionParams
+	Body   *UpdateTransactionJSONRequestBody
+}
+
+type UpdateTransactionResponseObject interface {
+	VisitUpdateTransactionResponse(w http.ResponseWriter) error
+}
+
+type UpdateTransaction200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateTransaction200JSONResponse struct {
+	Body    Transaction
+	Headers UpdateTransaction200ResponseHeaders
+}
+
+func (response UpdateTransaction200JSONResponse) VisitUpdateTransactionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTransactiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateTransactiondefaultApplicationProblemPlusJSONResponse) VisitUpdateTransactionResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -2201,6 +4048,66 @@ type StrictServerInterface interface {
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(ctx context.Context, request GetMetaRequestObject) (GetMetaResponseObject, error)
+	// ListAccounts List accounts with their balances
+	// (GET /api/v1/money/accounts)
+	ListAccounts(ctx context.Context, request ListAccountsRequestObject) (ListAccountsResponseObject, error)
+	// CreateAccount Add an account
+	// (POST /api/v1/money/accounts)
+	CreateAccount(ctx context.Context, request CreateAccountRequestObject) (CreateAccountResponseObject, error)
+	// DeleteAccount Move an account to the trash
+	// (DELETE /api/v1/money/accounts/{id})
+	DeleteAccount(ctx context.Context, request DeleteAccountRequestObject) (DeleteAccountResponseObject, error)
+	// GetAccount Read an account
+	// (GET /api/v1/money/accounts/{id})
+	GetAccount(ctx context.Context, request GetAccountRequestObject) (GetAccountResponseObject, error)
+	// UpdateAccount Edit an account
+	// (PATCH /api/v1/money/accounts/{id})
+	UpdateAccount(ctx context.Context, request UpdateAccountRequestObject) (UpdateAccountResponseObject, error)
+	// GetBudgets Budgets and spending for a month
+	// (GET /api/v1/money/budgets)
+	GetBudgets(ctx context.Context, request GetBudgetsRequestObject) (GetBudgetsResponseObject, error)
+	// SetBudget Set a category's budget for a month
+	// (PUT /api/v1/money/budgets)
+	SetBudget(ctx context.Context, request SetBudgetRequestObject) (SetBudgetResponseObject, error)
+	// ListCategories List categories (a two-level tree)
+	// (GET /api/v1/money/categories)
+	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
+	// CreateCategory Add a category
+	// (POST /api/v1/money/categories)
+	CreateCategory(ctx context.Context, request CreateCategoryRequestObject) (CreateCategoryResponseObject, error)
+	// ListCurrencies Currencies you can use, with their minor-unit digits
+	// (GET /api/v1/money/currencies)
+	ListCurrencies(ctx context.Context, request ListCurrenciesRequestObject) (ListCurrenciesResponseObject, error)
+	// ListRates The latest exchange rate per currency
+	// (GET /api/v1/money/rates)
+	ListRates(ctx context.Context, request ListRatesRequestObject) (ListRatesResponseObject, error)
+	// SetRate Set the exchange rate for a currency on a day
+	// (PUT /api/v1/money/rates)
+	SetRate(ctx context.Context, request SetRateRequestObject) (SetRateResponseObject, error)
+	// GetMoneySettings Read the money settings
+	// (GET /api/v1/money/settings)
+	GetMoneySettings(ctx context.Context, request GetMoneySettingsRequestObject) (GetMoneySettingsResponseObject, error)
+	// UpdateMoneySettings Change the base currency
+	// (PATCH /api/v1/money/settings)
+	UpdateMoneySettings(ctx context.Context, request UpdateMoneySettingsRequestObject) (UpdateMoneySettingsResponseObject, error)
+	// GetMoneySummary Net worth and the month's totals, in the base currency
+	// (GET /api/v1/money/summary)
+	GetMoneySummary(ctx context.Context, request GetMoneySummaryRequestObject) (GetMoneySummaryResponseObject, error)
+	// ListTransactions List transactions, newest first
+	// (GET /api/v1/money/transactions)
+	ListTransactions(ctx context.Context, request ListTransactionsRequestObject) (ListTransactionsResponseObject, error)
+	// CreateTransaction Record an income, an expense or a transfer
+	// (POST /api/v1/money/transactions)
+	CreateTransaction(ctx context.Context, request CreateTransactionRequestObject) (CreateTransactionResponseObject, error)
+	// DeleteTransaction Move a transaction to the trash
+	// (DELETE /api/v1/money/transactions/{id})
+	DeleteTransaction(ctx context.Context, request DeleteTransactionRequestObject) (DeleteTransactionResponseObject, error)
+	// GetTransaction Read a transaction
+	// (GET /api/v1/money/transactions/{id})
+	GetTransaction(ctx context.Context, request GetTransactionRequestObject) (GetTransactionResponseObject, error)
+	// UpdateTransaction Edit a transaction
+	// (PATCH /api/v1/money/transactions/{id})
+	UpdateTransaction(ctx context.Context, request UpdateTransactionRequestObject) (UpdateTransactionResponseObject, error)
 	// ListContacts List contacts
 	// (GET /api/v1/people/contacts)
 	ListContacts(ctx context.Context, request ListContactsRequestObject) (ListContactsResponseObject, error)
@@ -2468,6 +4375,564 @@ func (sh *strictHandler) GetMeta(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetMetaResponseObject); ok {
 		if err := validResponse.VisitGetMetaResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListAccounts operation middleware
+func (sh *strictHandler) ListAccounts(w http.ResponseWriter, r *http.Request) {
+	var request ListAccountsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListAccounts(ctx, request.(ListAccountsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListAccounts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListAccountsResponseObject); ok {
+		if err := validResponse.VisitListAccountsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateAccount operation middleware
+func (sh *strictHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
+	var request CreateAccountRequestObject
+
+	var body CreateAccountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateAccount(ctx, request.(CreateAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateAccountResponseObject); ok {
+		if err := validResponse.VisitCreateAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteAccount operation middleware
+func (sh *strictHandler) DeleteAccount(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request DeleteAccountRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteAccount(ctx, request.(DeleteAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteAccountResponseObject); ok {
+		if err := validResponse.VisitDeleteAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetAccount operation middleware
+func (sh *strictHandler) GetAccount(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request GetAccountRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetAccount(ctx, request.(GetAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetAccountResponseObject); ok {
+		if err := validResponse.VisitGetAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateAccount operation middleware
+func (sh *strictHandler) UpdateAccount(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateAccountParams) {
+	var request UpdateAccountRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body UpdateAccountJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateAccount(ctx, request.(UpdateAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateAccountResponseObject); ok {
+		if err := validResponse.VisitUpdateAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetBudgets operation middleware
+func (sh *strictHandler) GetBudgets(w http.ResponseWriter, r *http.Request, params GetBudgetsParams) {
+	var request GetBudgetsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetBudgets(ctx, request.(GetBudgetsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBudgets")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetBudgetsResponseObject); ok {
+		if err := validResponse.VisitGetBudgetsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetBudget operation middleware
+func (sh *strictHandler) SetBudget(w http.ResponseWriter, r *http.Request) {
+	var request SetBudgetRequestObject
+
+	var body SetBudgetJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetBudget(ctx, request.(SetBudgetRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetBudget")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetBudgetResponseObject); ok {
+		if err := validResponse.VisitSetBudgetResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListCategories operation middleware
+func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
+	var request ListCategoriesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCategories(ctx, request.(ListCategoriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCategories")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCategoriesResponseObject); ok {
+		if err := validResponse.VisitListCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCategory operation middleware
+func (sh *strictHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
+	var request CreateCategoryRequestObject
+
+	var body CreateCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCategory(ctx, request.(CreateCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCategoryResponseObject); ok {
+		if err := validResponse.VisitCreateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListCurrencies operation middleware
+func (sh *strictHandler) ListCurrencies(w http.ResponseWriter, r *http.Request) {
+	var request ListCurrenciesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCurrencies(ctx, request.(ListCurrenciesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCurrencies")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCurrenciesResponseObject); ok {
+		if err := validResponse.VisitListCurrenciesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListRates operation middleware
+func (sh *strictHandler) ListRates(w http.ResponseWriter, r *http.Request) {
+	var request ListRatesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListRates(ctx, request.(ListRatesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListRates")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListRatesResponseObject); ok {
+		if err := validResponse.VisitListRatesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SetRate operation middleware
+func (sh *strictHandler) SetRate(w http.ResponseWriter, r *http.Request) {
+	var request SetRateRequestObject
+
+	var body SetRateJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.SetRate(ctx, request.(SetRateRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SetRate")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(SetRateResponseObject); ok {
+		if err := validResponse.VisitSetRateResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMoneySettings operation middleware
+func (sh *strictHandler) GetMoneySettings(w http.ResponseWriter, r *http.Request) {
+	var request GetMoneySettingsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMoneySettings(ctx, request.(GetMoneySettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMoneySettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMoneySettingsResponseObject); ok {
+		if err := validResponse.VisitGetMoneySettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateMoneySettings operation middleware
+func (sh *strictHandler) UpdateMoneySettings(w http.ResponseWriter, r *http.Request, params UpdateMoneySettingsParams) {
+	var request UpdateMoneySettingsRequestObject
+
+	request.Params = params
+
+	var body UpdateMoneySettingsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateMoneySettings(ctx, request.(UpdateMoneySettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateMoneySettings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateMoneySettingsResponseObject); ok {
+		if err := validResponse.VisitUpdateMoneySettingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMoneySummary operation middleware
+func (sh *strictHandler) GetMoneySummary(w http.ResponseWriter, r *http.Request, params GetMoneySummaryParams) {
+	var request GetMoneySummaryRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMoneySummary(ctx, request.(GetMoneySummaryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMoneySummary")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetMoneySummaryResponseObject); ok {
+		if err := validResponse.VisitGetMoneySummaryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListTransactions operation middleware
+func (sh *strictHandler) ListTransactions(w http.ResponseWriter, r *http.Request, params ListTransactionsParams) {
+	var request ListTransactionsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListTransactions(ctx, request.(ListTransactionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListTransactions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListTransactionsResponseObject); ok {
+		if err := validResponse.VisitListTransactionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTransaction operation middleware
+func (sh *strictHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
+	var request CreateTransactionRequestObject
+
+	var body CreateTransactionJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTransaction(ctx, request.(CreateTransactionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTransaction")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTransactionResponseObject); ok {
+		if err := validResponse.VisitCreateTransactionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteTransaction operation middleware
+func (sh *strictHandler) DeleteTransaction(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request DeleteTransactionRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTransaction(ctx, request.(DeleteTransactionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTransaction")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteTransactionResponseObject); ok {
+		if err := validResponse.VisitDeleteTransactionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTransaction operation middleware
+func (sh *strictHandler) GetTransaction(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request GetTransactionRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTransaction(ctx, request.(GetTransactionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTransaction")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTransactionResponseObject); ok {
+		if err := validResponse.VisitGetTransactionResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTransaction operation middleware
+func (sh *strictHandler) UpdateTransaction(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateTransactionParams) {
+	var request UpdateTransactionRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body UpdateTransactionJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTransaction(ctx, request.(UpdateTransactionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTransaction")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTransactionResponseObject); ok {
+		if err := validResponse.VisitUpdateTransactionResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2875,57 +5340,91 @@ func (sh *strictHandler) ReopenTask(w http.ResponseWriter, r *http.Request, id R
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"r8dcqi8ARQIwQLk063aAzuf/HAA=",
+	"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",
+	"RSSgJWV9rP0Ienv7fwMA",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

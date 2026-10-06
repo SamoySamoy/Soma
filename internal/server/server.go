@@ -18,6 +18,7 @@ import (
 	"github.com/SamoySamoy/Soma/internal/apigen"
 	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/modules/journal"
+	"github.com/SamoySamoy/Soma/internal/modules/money"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/modules/self"
 	"github.com/SamoySamoy/Soma/internal/modules/tasks"
@@ -46,6 +47,8 @@ type Deps struct {
 	People *people.Service
 	// BodyMap backs the landing page.
 	BodyMap *bodymap.Service
+	// Money backs the Money area.
+	Money *money.Service
 	// Journal, Tasks and Self back their areas.
 	Journal *journal.Service
 	Tasks   *tasks.Service
@@ -78,6 +81,7 @@ func New(d Deps) (http.Handler, error) {
 		journal: journal.NewHandler(d.Journal),
 		tasks:   tasks.NewHandler(d.Tasks),
 		self:    self.NewHandler(d.Self),
+		money:   money.NewHandler(d.Money),
 	}, nil, apigen.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  badRequest,
 		ResponseErrorHandlerFunc: httpx.WriteError,

@@ -19,6 +19,7 @@ import (
 	"github.com/SamoySamoy/Soma/internal/apigen"
 	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/modules/journal"
+	"github.com/SamoySamoy/Soma/internal/modules/money"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/modules/self"
 	"github.com/SamoySamoy/Soma/internal/modules/tasks"
@@ -44,6 +45,9 @@ func newLocalServer(t *testing.T) *httptest.Server {
 	if err := space.EnsureLocal(t.Context(), d, clk); err != nil {
 		t.Fatalf("EnsureLocal: %v", err)
 	}
+	if err := money.SeedDefaults(t.Context(), d, clk); err != nil {
+		t.Fatalf("SeedDefaults: %v", err)
+	}
 	h, err := New(Deps{
 		Config:        config.Config{Mode: config.ModeLocal, BaseURL: "http://localhost:8080"},
 		Logger:        slog.New(slog.NewTextHandler(io.Discard, nil)),
@@ -57,7 +61,9 @@ func newLocalServer(t *testing.T) *httptest.Server {
 			bodymap.AreaMind:           journal.BodymapProvider{},
 			bodymap.AreaResponsibility: tasks.BodymapProvider{},
 			bodymap.AreaSelf:           self.BodymapProvider{},
+			bodymap.AreaMoney:          money.BodymapProvider{},
 		}),
+		Money:   money.NewService(d, clk),
 		Journal: journal.NewService(d, clk),
 		Tasks:   tasks.NewService(d, clk),
 		Self:    self.NewService(d, clk),
@@ -267,9 +273,13 @@ func TestBodyMapOverHTTP(t *testing.T) {
 		if mind := areas["mind"]; !mind.Enabled || mind.Status != apigen.Calm {
 			t.Errorf("mind = %+v, want enabled and calm", mind)
 		}
-		// Money is still not built.
-		if money := areas["money"]; money.Enabled || money.Status != apigen.Unknown {
-			t.Errorf("money = %+v, want disabled and unknown", money)
+		// Money is built and, with no budgets yet, calm.
+		if m := areas["money"]; !m.Enabled || m.Status != apigen.Calm {
+			t.Errorf("money = %+v, want enabled and calm", m)
+		}
+		// Growth is still not built.
+		if growth := areas["growth"]; growth.Enabled || growth.Status != apigen.Unknown {
+			t.Errorf("growth = %+v, want disabled and unknown", growth)
 		}
 	})
 }

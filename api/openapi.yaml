@@ -497,6 +497,435 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /api/v1/money/currencies:
+    get:
+      operationId: listCurrencies
+      summary: Currencies you can use, with their minor-unit digits
+      tags: [money]
+      x-soma-permission: money:read
+      responses:
+        "200":
+          description: The currency list.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrencyList"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/settings:
+    get:
+      operationId: getMoneySettings
+      summary: Read the money settings
+      tags: [money]
+      x-soma-permission: money:read
+      responses:
+        "200":
+          description: The settings.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoneySettings"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateMoneySettings
+      summary: Change the base currency
+      description: JSON Merge Patch with `If-Match`. Totals and budgets are shown in the base currency.
+      tags: [money]
+      x-soma-permission: money:write
+      parameters:
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated settings.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoneySettings"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/accounts:
+    get:
+      operationId: listAccounts
+      summary: List accounts with their balances
+      tags: [money]
+      x-soma-permission: money:read
+      responses:
+        "200":
+          description: The accounts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createAccount
+      summary: Add an account
+      tags: [money]
+      x-soma-permission: money:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountInput"
+      responses:
+        "201":
+          description: The new account.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/accounts/{id}:
+    get:
+      operationId: getAccount
+      summary: Read an account
+      tags: [money]
+      x-soma-permission: money:read
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The account.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateAccount
+      summary: Edit an account
+      description: JSON Merge Patch with `If-Match`. The currency of an account can't change.
+      tags: [money]
+      x-soma-permission: money:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated account.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteAccount
+      summary: Move an account to the trash
+      tags: [money]
+      x-soma-permission: money:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Moved to the trash.
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/categories:
+    get:
+      operationId: listCategories
+      summary: List categories (a two-level tree)
+      tags: [money]
+      x-soma-permission: money:read
+      responses:
+        "200":
+          description: The categories.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createCategory
+      summary: Add a category
+      tags: [money]
+      x-soma-permission: money:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: The new category.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/transactions:
+    get:
+      operationId: listTransactions
+      summary: List transactions, newest first
+      tags: [money]
+      x-soma-permission: money:read
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          description: Pass `next_cursor` back to get the next page.
+          schema:
+            type: string
+        - name: account_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A page of transactions.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createTransaction
+      summary: Record an income, an expense or a transfer
+      description: |
+        Amounts are positive; the kind sets the sign. A transfer creates two
+        linked rows, and both accounts must use the same currency.
+      tags: [money]
+      x-soma-permission: money:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: The recorded transaction (for a transfer, the outgoing side).
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/transactions/{id}:
+    get:
+      operationId: getTransaction
+      summary: Read a transaction
+      tags: [money]
+      x-soma-permission: money:read
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The transaction.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateTransaction
+      summary: Edit a transaction
+      description: |
+        JSON Merge Patch with `If-Match`. Editable: `amount_minor` (positive),
+        `occurred_on`, `category_id`, `payee`, `notes`. Transfers and the kind
+        can't be edited; delete and record again instead.
+      tags: [money]
+      x-soma-permission: money:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated transaction.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteTransaction
+      summary: Move a transaction to the trash
+      description: A transfer moves both of its sides to the trash together.
+      tags: [money]
+      x-soma-permission: money:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Moved to the trash.
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/budgets:
+    get:
+      operationId: getBudgets
+      summary: Budgets and spending for a month
+      tags: [money]
+      x-soma-permission: money:read
+      parameters:
+        - name: month
+          in: query
+          required: false
+          description: Any day in the month, YYYY-MM-DD. Defaults to this month.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "200":
+          description: The month's budget lines.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetMonth"
+        default:
+          $ref: "#/components/responses/Problem"
+    put:
+      operationId: setBudget
+      summary: Set a category's budget for a month
+      description: An amount of 0 removes the budget.
+      tags: [money]
+      x-soma-permission: money:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BudgetInput"
+      responses:
+        "200":
+          description: The budget line after the change.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BudgetLine"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/rates:
+    get:
+      operationId: listRates
+      summary: The latest exchange rate per currency
+      tags: [money]
+      x-soma-permission: money:read
+      responses:
+        "200":
+          description: The rates.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateList"
+        default:
+          $ref: "#/components/responses/Problem"
+    put:
+      operationId: setRate
+      summary: Set the exchange rate for a currency on a day
+      description: One unit of the currency equals `rate_e8 / 10^8` base-currency major units.
+      tags: [money]
+      x-soma-permission: money:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RateInput"
+      responses:
+        "200":
+          description: The stored rate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rate"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/money/summary:
+    get:
+      operationId: getMoneySummary
+      summary: Net worth and the month's totals, in the base currency
+      tags: [money]
+      x-soma-permission: money:read
+      parameters:
+        - name: month
+          in: query
+          required: false
+          description: Any day in the month, YYYY-MM-DD. Defaults to this month.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "200":
+          description: The summary.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoneySummary"
+        default:
+          $ref: "#/components/responses/Problem"
+
 components:
   parameters:
     ResourceId:
@@ -681,6 +1110,363 @@ components:
       type: object
       description: Fields to change. A null value clears the field. Unknown fields are refused.
       additionalProperties: {}
+
+    Currency:
+      type: object
+      required: [code, digits]
+      properties:
+        code:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        digits:
+          type: integer
+          minimum: 0
+          maximum: 3
+          description: Digits after the decimal point, for display and input.
+
+    CurrencyList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Currency"
+
+    MoneySettings:
+      type: object
+      required: [base_currency, version, updated_at]
+      properties:
+        base_currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        version:
+          type: integer
+          minimum: 1
+        updated_at:
+          type: string
+          format: date-time
+
+    Account:
+      type: object
+      required: [id, name, kind, currency, opening_minor, opened_on, balance_minor, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        kind:
+          type: string
+          enum: [cash, bank, credit_card, e_wallet, loan, investment]
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        opening_minor:
+          type: integer
+          description: Balance before the first recorded transaction, in minor units. A loan is entered as a negative amount.
+        opened_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        balance_minor:
+          type: integer
+          description: Opening balance plus every transaction, in minor units.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    AccountInput:
+      type: object
+      additionalProperties: false
+      required: [name, kind, currency, opened_on]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        kind:
+          type: string
+          enum: [cash, bank, credit_card, e_wallet, loan, investment]
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        opening_minor:
+          type: integer
+          default: 0
+        opened_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+
+    AccountList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Account"
+
+    Category:
+      type: object
+      required: [id, name, kind]
+      properties:
+        id:
+          type: string
+          format: uuid
+        parent_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          type: string
+          enum: [expense, income]
+
+    CategoryInput:
+      type: object
+      additionalProperties: false
+      required: [name, kind]
+      properties:
+        name:
+          type: string
+          maxLength: 60
+        kind:
+          type: string
+          enum: [expense, income]
+        parent_id:
+          type: string
+          format: uuid
+
+    CategoryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+
+    Transaction:
+      type: object
+      required: [id, account_id, kind, amount_minor, occurred_on, version, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [income, expense, transfer_in, transfer_out, adjustment]
+        amount_minor:
+          type: integer
+          description: "Signed: income and transfers in are positive, expenses and transfers out negative."
+        occurred_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        category_id:
+          type: string
+          format: uuid
+        payee:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+        transfer_id:
+          type: string
+          format: uuid
+          description: Shared by the two sides of a transfer.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    TransactionInput:
+      type: object
+      additionalProperties: false
+      required: [kind, account_id, amount_minor, occurred_on]
+      properties:
+        kind:
+          type: string
+          enum: [income, expense, transfer]
+        account_id:
+          type: string
+          format: uuid
+        to_account_id:
+          type: string
+          format: uuid
+          description: The receiving account, for a transfer.
+        amount_minor:
+          type: integer
+          minimum: 1
+        occurred_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        category_id:
+          type: string
+          format: uuid
+        payee:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+
+    TransactionList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        next_cursor:
+          type: string
+
+    BudgetLine:
+      type: object
+      required: [category_id, name, budget_minor, spent_minor]
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+        budget_minor:
+          type: integer
+          description: The budget for the month, in the base currency. 0 means none set.
+        spent_minor:
+          type: integer
+          description: Expenses in this category and its subcategories, in the base currency.
+
+    BudgetMonth:
+      type: object
+      required: [month, base_currency, items]
+      properties:
+        month:
+          type: string
+          pattern: '^\d{4}-\d{2}-01$'
+        base_currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BudgetLine"
+
+    BudgetInput:
+      type: object
+      additionalProperties: false
+      required: [category_id, month, amount_minor]
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: Any day in the month.
+        amount_minor:
+          type: integer
+          minimum: 0
+
+    Rate:
+      type: object
+      required: [currency, rate_on, rate_e8]
+      properties:
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        rate_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        rate_e8:
+          type: integer
+          minimum: 1
+          description: One unit of the currency, in base-currency major units, times 10^8.
+
+    RateInput:
+      type: object
+      additionalProperties: false
+      required: [currency, rate_on, rate_e8]
+      properties:
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        rate_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        rate_e8:
+          type: integer
+          minimum: 1
+
+    RateList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Rate"
+
+    MoneySummary:
+      type: object
+      required: [month, base_currency, net_worth_minor, income_minor, expense_minor, overspent_categories, accounts, missing_rates]
+      properties:
+        month:
+          type: string
+          pattern: '^\d{4}-\d{2}-01$'
+        base_currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        net_worth_minor:
+          type: integer
+          description: All account balances in the base currency. Accounts whose currency has no rate are left out and listed in missing_rates.
+        income_minor:
+          type: integer
+        expense_minor:
+          type: integer
+          description: Positive total of this month's expenses, in the base currency.
+        overspent_categories:
+          type: integer
+        accounts:
+          type: array
+          items:
+            type: object
+            required: [id, name, currency, balance_minor]
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              currency:
+                type: string
+              balance_minor:
+                type: integer
+              base_minor:
+                type: integer
+                description: The balance in the base currency, when a rate is known.
+        missing_rates:
+          type: array
+          items:
+            type: string
 
     Meta:
       type: object

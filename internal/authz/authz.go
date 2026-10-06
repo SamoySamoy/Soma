@@ -24,6 +24,8 @@ type Permission string
 const (
 	BodymapRead  Permission = "bodymap:read"
 	JournalRead  Permission = "journal:read"
+	MoneyRead    Permission = "money:read"
+	MoneyWrite   Permission = "money:write"
 	JournalWrite Permission = "journal:write"
 	PeopleRead   Permission = "people:read"
 	PeopleWrite  Permission = "people:write"
@@ -48,14 +50,14 @@ const (
 var grants = map[Role]map[Permission]bool{
 	RoleOwner: {
 		BodymapRead: true, JournalRead: true, JournalWrite: true, PeopleRead: true, PeopleWrite: true,
-		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true,
+		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true, MoneyRead: true, MoneyWrite: true,
 	},
 	RoleEditor: {
 		BodymapRead: true, JournalRead: true, JournalWrite: true, PeopleRead: true, PeopleWrite: true,
-		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true,
+		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true, MoneyRead: true, MoneyWrite: true,
 	},
 	RoleViewer: {
-		BodymapRead: true, JournalRead: true, PeopleRead: true, SelfRead: true, TasksRead: true,
+		BodymapRead: true, JournalRead: true, PeopleRead: true, SelfRead: true, TasksRead: true, MoneyRead: true,
 	},
 }
 
