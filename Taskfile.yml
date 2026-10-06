@@ -78,6 +78,19 @@ tasks:
     cmds:
       - docker compose up -d --wait postgres
 
+  db:backup:
+    desc: Write a compressed copy of the database to backups/ (git-ignored)
+    cmds:
+      - "docker compose exec -T postgres pg_dump -U soma -d soma -Fc > backups/soma-{{now | date \"20060102-150405\"}}.dump"
+    preconditions:
+      - sh: docker compose ps --status running postgres
+        msg: "PostgreSQL is not running. Start it with: go tool task db:up"
+
+  db:restore:
+    desc: "Restore a backup (replaces the data): go tool task db:restore -- backups/file.dump"
+    cmds:
+      - docker compose exec -T postgres pg_restore -U soma -d soma --clean --if-exists < {{.CLI_ARGS}}
+
   db:down:
     desc: Stop PostgreSQL (data is kept in the pgdata volume)
     cmds:
