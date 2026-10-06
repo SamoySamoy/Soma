@@ -84,7 +84,7 @@ export function TasksPage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-end">
         <div>
-          <Title order={1}>{t("tasks.title")}</Title>
+          <Title order={2}>{t("tasks.title")}</Title>
           <Text c="dimmed">{t("tasks.intro")}</Text>
         </div>
         <Button

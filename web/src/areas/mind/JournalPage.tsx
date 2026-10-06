@@ -79,7 +79,7 @@ export function JournalPage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-end">
         <div>
-          <Title order={1}>{t("journal.title")}</Title>
+          <Title order={2}>{t("journal.title")}</Title>
           <Text c="dimmed">{t("journal.intro")}</Text>
         </div>
         <Button

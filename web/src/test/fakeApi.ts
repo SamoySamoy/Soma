@@ -7,6 +7,8 @@ type Options = {
   journal?: unknown[];
   tasks?: unknown[];
   self?: Record<string, unknown>;
+  /** Money responses by path, overriding the defaults below. */
+  money?: Record<string, unknown>;
   bodymap?: unknown;
   /** When set, every body map request fails with this status. */
   bodymapStatus?: number;
@@ -14,7 +16,7 @@ type Options = {
   write?: { status: number; body?: unknown };
 };
 
-const built = new Set(["heart", "mind", "responsibilities", "self"]);
+const built = new Set(["heart", "mind", "responsibilities", "self", "money"]);
 
 /**
  * A body map in which Heart, Mind, Responsibilities and Self are built, with
@@ -28,7 +30,7 @@ export function defaultBodyMap() {
     ["heart", "P1", { birthdays_soon: 1 }],
     ["body", "P2", {}],
     ["work", "P2", {}],
-    ["money", "P1", {}],
+    ["money", "P1", { budgets: 1, overspent: 1 }],
     ["growth", "P2", {}],
     ["journeys", "P3", {}],
     ["home", "P2", {}],
@@ -44,6 +46,68 @@ export function defaultBodyMap() {
     };
   });
   return { as_of: "2026-10-06T09:00:00Z", areas };
+}
+
+/** Money responses for the fake API: a VND space with one account and a Food budget. */
+export function defaultMoney(): Record<string, unknown> {
+  const account = {
+    id: "0195f3a2-0000-7000-8000-000000000101",
+    name: "Wallet",
+    kind: "cash",
+    currency: "VND",
+    opening_minor: 1000000,
+    opened_on: "2026-01-01",
+    balance_minor: 1000000,
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    version: 1,
+  };
+  return {
+    "/api/v1/money/currencies": {
+      items: [
+        { code: "USD", digits: 2 },
+        { code: "VND", digits: 0 },
+      ],
+    },
+    "/api/v1/money/settings": {
+      base_currency: "VND",
+      version: 1,
+      updated_at: "2026-01-01T00:00:00Z",
+    },
+    "/api/v1/money/accounts": { items: [account] },
+    "/api/v1/money/categories": {
+      items: [
+        { id: "cat-food", name: "Food", kind: "expense" },
+        { id: "cat-groc", name: "Groceries", kind: "expense", parent_id: "cat-food" },
+        { id: "cat-salary", name: "Salary", kind: "income" },
+      ],
+    },
+    "/api/v1/money/transactions": { items: [] },
+    "/api/v1/money/budgets": {
+      month: "2026-10-01",
+      base_currency: "VND",
+      items: [{ category_id: "cat-food", name: "Food", budget_minor: 400000, spent_minor: 500000 }],
+    },
+    "/api/v1/money/rates": { items: [] },
+    "/api/v1/money/summary": {
+      month: "2026-10-01",
+      base_currency: "VND",
+      net_worth_minor: 1000000,
+      income_minor: 0,
+      expense_minor: 500000,
+      overspent_categories: 1,
+      accounts: [
+        {
+          id: account.id,
+          name: "Wallet",
+          currency: "VND",
+          balance_minor: 1000000,
+          base_minor: 1000000,
+        },
+      ],
+      missing_rates: ["USD"],
+    },
+  };
 }
 
 /** A Self profile with one field filled in, at version 3. */
@@ -100,6 +164,10 @@ export function fakeApi(options: Options = {}): Call[] {
       }
       if (url.pathname === "/api/v1/tasks") {
         return json(200, { items: options.tasks ?? [] });
+      }
+      const money = { ...defaultMoney(), ...options.money };
+      if (url.pathname.startsWith("/api/v1/money/") && url.pathname in money) {
+        return json(200, money[url.pathname]);
       }
       if (url.pathname === "/api/v1/self") {
         const profile = options.self ?? defaultSelfProfile();

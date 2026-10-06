@@ -78,7 +78,7 @@ export function PeoplePage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-end">
         <div>
-          <Title order={1}>{t("people.title")}</Title>
+          <Title order={2}>{t("people.title")}</Title>
           <Text c="dimmed">{t("people.intro")}</Text>
         </div>
         <Button

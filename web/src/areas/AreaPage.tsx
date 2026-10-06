@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router";
 import { type BodyArea, useBodyMap } from "./bodymap/api";
 import { areaSummary, statusColor, statusLabel } from "./bodymap/status";
 import { JournalPage } from "./mind/JournalPage";
+import { MoneyPage } from "./money/MoneyPage";
 import { PeoplePage } from "./heart/PeoplePage";
 import { SelfPage } from "./self/SelfPage";
 import { TasksPage } from "./responsibilities/TasksPage";
@@ -60,6 +61,8 @@ function AreaContent({ area }: { area: BodyArea["key"] }) {
       return <TasksPage />;
     case "self":
       return <SelfPage />;
+    case "money":
+      return <MoneyPage />;
     default:
       return null;
   }

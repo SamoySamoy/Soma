@@ -57,6 +57,10 @@ export function areaSummary(t: TFunction, area: BodyArea): string {
         ? t("bodymap.summary.selfPartial", { filled, fields })
         : t("bodymap.summary.none");
     }
+    case "money": {
+      const over = c["overspent"] ?? 0;
+      return over > 0 ? t("bodymap.summary.overspent", { count: over }) : t("bodymap.summary.none");
+    }
     default:
       return t("bodymap.summary.none");
   }

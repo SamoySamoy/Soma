@@ -91,7 +91,9 @@
       "overdue_other": "{{count}} tasks are overdue.",
       "dueToday_one": "{{count}} task is due today.",
       "dueToday_other": "{{count}} tasks are due today.",
-      "selfPartial": "{{filled}} of {{fields}} parts of your profile are filled in."
+      "selfPartial": "{{filled}} of {{fields}} parts of your profile are filled in.",
+      "overspent_one": "{{count}} budget is over.",
+      "overspent_other": "{{count}} budgets are over."
     }
   },
   "areas": {
@@ -212,6 +214,107 @@
       "coreValues": "What matters most to you",
       "coreValuesHint": "Values, principles, what you will not give up.",
       "bio": "About you"
+    }
+  },
+  "money": {
+    "title": "Money",
+    "intro": "Accounts, spending and budgets. Totals are in {{currency}}.",
+    "loading": "Loading your money…",
+    "loadFailed": "Couldn't load your money figures. Try again in a moment.",
+    "stale": "This changed elsewhere. Reload and try again.",
+    "saveFailed": "Couldn't save. Check the highlighted fields, then try again.",
+    "amountInvalid": "Enter an amount with no more decimal places than the currency has.",
+    "tabs": {
+      "summary": "Summary",
+      "transactions": "Transactions",
+      "budgets": "Budgets",
+      "accounts": "Accounts",
+      "settings": "Settings"
+    },
+    "kinds": {
+      "cash": "Cash",
+      "bank": "Bank account",
+      "credit_card": "Credit card",
+      "e_wallet": "E-wallet",
+      "loan": "Loan",
+      "investment": "Investment"
+    },
+    "summary": {
+      "netWorth": "Net worth",
+      "income": "Income this month",
+      "expenses": "Spending this month",
+      "overspent": "{{count}} budget is over this month.",
+      "missingRates": "Add an exchange rate for {{currencies}} to include those accounts in net worth.",
+      "accounts": "Accounts",
+      "noAccounts": "No accounts yet. Add one to start tracking."
+    },
+    "accounts": {
+      "add": "Add account",
+      "empty": "No accounts yet.",
+      "name": "Name",
+      "nameRequired": "Give the account a name.",
+      "kind": "Type",
+      "currency": "Currency",
+      "opening": "Opening balance",
+      "openingHint": "Use a minus sign for money owed, such as a loan.",
+      "openedOn": "Opened on",
+      "trash": "Move to trash",
+      "trashConfirm": "Move {{name}} to the trash? Its transactions are kept with it.",
+      "trashAction": "Yes, move to trash"
+    },
+    "settings": {
+      "base": "Base currency",
+      "baseHint": "Budgets and totals are shown in this currency.",
+      "baseLabel": "Base currency",
+      "saved": "Saved."
+    },
+    "rates": {
+      "title": "Exchange rates",
+      "hint": "Enter how much one unit of a currency is worth in {{base}}, for example 0.00004 for dong to dollar.",
+      "chooseCurrency": "Choose a currency.",
+      "invalid": "Enter a rate with up to eight decimal places.",
+      "save": "Save rate",
+      "currency": "Currency",
+      "value": "Value in {{base}}",
+      "on": "Date",
+      "line": "1 {{currency}} = {{rate}} {{base}} (from {{on}})"
+    },
+    "tx": {
+      "record": "Record",
+      "needAccount": "Add an account first, then record money moving in or out.",
+      "empty": "No transactions yet.",
+      "transfer": "Transfer",
+      "trash": "Remove",
+      "trashConfirm": "Remove this transaction? You can restore it later.",
+      "trashAction": "Yes, remove",
+      "loadMore": "Load more",
+      "kind": {
+        "income": "Income",
+        "expense": "Expense",
+        "transfer": "Transfer"
+      },
+      "toAccount": "Into account",
+      "fromAccount": "From account",
+      "toAccountTransfer": "Into account",
+      "noSameCurrency": "No other account uses {{currency}}, so there is nothing to transfer to.",
+      "amount": "Amount in {{currency}}",
+      "decimals": "Up to {{count}} decimal places.",
+      "date": "Date",
+      "category": "Category",
+      "payee": "Payee",
+      "notes": "Notes",
+      "chooseAccount": "Choose an account.",
+      "chooseTarget": "Choose the account to receive the money."
+    },
+    "budgets": {
+      "month": "Month",
+      "monthHint": "Any day in the month.",
+      "over": "Over budget",
+      "spent": "Spent {{amount}}",
+      "left": "{{amount}} left",
+      "none": "No budget",
+      "amountFor": "Budget for {{name}} in {{currency}}",
+      "saved": "Saved."
     }
   }
 }

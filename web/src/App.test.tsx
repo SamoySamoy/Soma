@@ -64,9 +64,9 @@ describe("Body map", () => {
     render(<App initialPath="/" />);
 
     const user = userEvent.setup();
-    await user.click(await screen.findByRole("link", { name: "Money: Not available yet" }));
+    await user.click(await screen.findByRole("link", { name: "Growth: Not available yet" }));
 
-    expect(await screen.findByText("Not available yet. It arrives in P1.")).toBeInTheDocument();
+    expect(await screen.findByText("Not available yet. It arrives in P2.")).toBeInTheDocument();
   });
 
   it("summarises the selected area from its counts", async () => {

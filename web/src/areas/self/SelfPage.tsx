@@ -68,7 +68,7 @@ function ProfileForm({ profile }: { profile: SelfProfile }) {
   return (
     <Stack gap="md" maw={640}>
       <div>
-        <Title order={1}>{t("self.title")}</Title>
+        <Title order={2}>{t("self.title")}</Title>
         <Text c="dimmed">{t("self.intro")}</Text>
       </div>
 
