@@ -18,7 +18,13 @@ tasks:
     desc: Regenerate code from the OpenAPI contract
     cmds:
       - task: gen:api
+      - task: gen:sql
       - task: gen:web
+
+  gen:sql:
+    desc: Generate typed Go from SQL with the pinned sqlc image (ADR-013)
+    cmds:
+      - docker run --rm -v "{{.ROOT_DIR}}:/src" -w /src sqlc/sqlc:1.30.0 generate
 
   gen:api:
     desc: Generate the Go server from api/openapi.yaml
@@ -60,7 +66,7 @@ tasks:
     desc: Fail if generated code is out of date
     cmds:
       - task: gen
-      - git diff --exit-code -- internal/apigen web/src/api
+      - git diff --exit-code -- internal/apigen internal/core/store internal/modules/people/store web/src/api
 
   migrate:new:
     desc: "Create a migration: go tool task migrate:new -- add_people"
