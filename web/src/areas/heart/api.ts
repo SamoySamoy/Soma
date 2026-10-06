@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+import { invalidateWithBodyMap } from "../../api/invalidate";
 import { api } from "../../api/client";
 import type { components } from "../../api/schema.gen";
 
@@ -55,7 +56,7 @@ export function useCreateContact() {
       if (error) throw new ProblemError(error);
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: contactsKey }),
+    onSuccess: () => invalidateWithBodyMap(queryClient, contactsKey),
   });
 }
 
@@ -82,7 +83,7 @@ export function useUpdateContact() {
       if (error) throw new ProblemError(error);
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: contactsKey }),
+    onSuccess: () => invalidateWithBodyMap(queryClient, contactsKey),
   });
 }
 
@@ -96,6 +97,6 @@ export function useTrashContact() {
       });
       if (error) throw new ProblemError(error);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: contactsKey }),
+    onSuccess: () => invalidateWithBodyMap(queryClient, contactsKey),
   });
 }

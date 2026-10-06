@@ -28,9 +28,36 @@ export function areaSummary(t: TFunction, area: BodyArea): string {
   if (!area.enabled) {
     return t("bodymap.notBuilt", { phase: area.phase });
   }
-  const soon = area.counts["birthdays_soon"] ?? 0;
-  if (area.key === "heart" && soon > 0) {
-    return t("bodymap.summary.birthdaysSoon", { count: soon });
+  const c = area.counts;
+  switch (area.key) {
+    case "heart": {
+      const soon = c["birthdays_soon"] ?? 0;
+      return soon > 0
+        ? t("bodymap.summary.birthdaysSoon", { count: soon })
+        : t("bodymap.summary.none");
+    }
+    case "mind": {
+      const days = c["days_since_last"] ?? 0;
+      if ((c["entries"] ?? 0) === 0) return t("bodymap.summary.journalNone");
+      return days > 3
+        ? t("bodymap.summary.journalStale", { count: days })
+        : t("bodymap.summary.none");
+    }
+    case "responsibilities": {
+      const overdue = c["overdue"] ?? 0;
+      const today = c["due_today"] ?? 0;
+      if (overdue > 0) return t("bodymap.summary.overdue", { count: overdue });
+      if (today > 0) return t("bodymap.summary.dueToday", { count: today });
+      return t("bodymap.summary.none");
+    }
+    case "self": {
+      const filled = c["filled"] ?? 0;
+      const fields = c["fields"] ?? 0;
+      return filled < fields
+        ? t("bodymap.summary.selfPartial", { filled, fields })
+        : t("bodymap.summary.none");
+    }
+    default:
+      return t("bodymap.summary.none");
   }
-  return t("bodymap.summary.none");
 }

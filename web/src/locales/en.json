@@ -83,7 +83,15 @@
     "summary": {
       "none": "Nothing needs attention.",
       "birthdaysSoon_one": "{{count}} birthday in the next 14 days.",
-      "birthdaysSoon_other": "{{count}} birthdays in the next 14 days."
+      "birthdaysSoon_other": "{{count}} birthdays in the next 14 days.",
+      "journalNone": "No entries yet. Write the first one.",
+      "journalStale_one": "It has been {{count}} day since your last entry.",
+      "journalStale_other": "It has been {{count}} days since your last entry.",
+      "overdue_one": "{{count}} task is overdue.",
+      "overdue_other": "{{count}} tasks are overdue.",
+      "dueToday_one": "{{count}} task is due today.",
+      "dueToday_other": "{{count}} tasks are due today.",
+      "selfPartial": "{{filled}} of {{fields}} parts of your profile are filled in."
     }
   },
   "areas": {
@@ -119,6 +127,91 @@
     },
     "papers": {
       "name": "Papers"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "keep": "Keep it"
+  },
+  "journal": {
+    "title": "Journal",
+    "intro": "Your private diary. Only you can read these entries.",
+    "write": "Write an entry",
+    "loading": "Loading your entries…",
+    "loadFailed": "Couldn't load your entries. Try again in a moment.",
+    "empty": "No entries yet. Write about today, however small.",
+    "loadMore": "Load more",
+    "edit": "Edit",
+    "editNamed": "Edit the entry for {{date}}",
+    "moodLabel": "Mood {{mood}} of 5",
+    "stale": "This entry was changed elsewhere. Close it and reopen it to see the latest version.",
+    "saveFailed": "Couldn't save. Check the highlighted fields, then try again.",
+    "form": {
+      "addTitle": "New entry",
+      "editTitle": "Edit entry",
+      "date": "Date",
+      "titleLabel": "Title (optional)",
+      "mood": "Mood",
+      "noMood": "No mood recorded",
+      "body": "What happened?"
+    },
+    "validation": {
+      "empty": "Write something first."
+    },
+    "trash": {
+      "action": "Move to trash",
+      "confirm": "Move this entry to the trash? You can restore it later.",
+      "confirmAction": "Yes, move to trash"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "intro": "Things you need to do, and when.",
+    "add": "Add task",
+    "loading": "Loading your tasks…",
+    "loadFailed": "Couldn't load your tasks. Try again in a moment.",
+    "empty": "Nothing to do. Add a task when something comes up.",
+    "showDone": "Show finished tasks",
+    "due": "Due {{date}}",
+    "overdue": "Overdue",
+    "edit": "Edit",
+    "editNamed": "Edit {{title}}",
+    "completeNamed": "Mark {{title}} as done",
+    "reopenNamed": "Mark {{title}} as not done",
+    "loadMore": "Load more",
+    "stale": "This task was changed elsewhere. Close it and reopen it to see the latest version.",
+    "saveFailed": "Couldn't save. Check the highlighted fields, then try again.",
+    "form": {
+      "addTitle": "New task",
+      "editTitle": "Edit task",
+      "titleLabel": "What needs doing?",
+      "due": "Due date (optional)",
+      "notes": "Notes (optional)"
+    },
+    "validation": {
+      "title": "Enter what needs doing."
+    },
+    "trash": {
+      "action": "Move to trash",
+      "confirm": "Move this task to the trash? You can restore it later.",
+      "confirmAction": "Yes, move to trash"
+    }
+  },
+  "self": {
+    "title": "Self",
+    "intro": "Who you are, in your own words. Nothing here is shared with anyone.",
+    "loading": "Loading your profile…",
+    "loadFailed": "Couldn't load your profile. Try again in a moment.",
+    "saved": "Saved.",
+    "stale": "Your profile was changed elsewhere. Reload the page to see the latest version.",
+    "saveFailed": "Couldn't save. Check the fields, then try again.",
+    "form": {
+      "preferredName": "Name you go by",
+      "birthDate": "Birth date",
+      "coreValues": "What matters most to you",
+      "coreValuesHint": "Values, principles, what you will not give up.",
+      "bio": "About you"
     }
   }
 }

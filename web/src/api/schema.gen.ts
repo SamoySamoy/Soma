@@ -94,10 +94,216 @@ export interface paths {
         patch: operations["updateContact"];
         trace?: never;
     };
+    "/api/v1/journal/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List your journal entries
+         * @description Only your own entries are listed; other members never see them.
+         */
+        get: operations["listJournalEntries"];
+        put?: never;
+        /** Write an entry */
+        post: operations["createJournalEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/journal/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an entry */
+        get: operations["getJournalEntry"];
+        put?: never;
+        post?: never;
+        /** Move an entry to the trash */
+        delete: operations["deleteJournalEntry"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit an entry
+         * @description JSON Merge Patch. Send only the fields to change; `null` clears one.
+         *     Requires `If-Match` with the entry's current ETag; otherwise 412.
+         */
+        patch: operations["updateJournalEntry"];
+        trace?: never;
+    };
+    "/api/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks */
+        get: operations["listTasks"];
+        put?: never;
+        /** Add a task */
+        post: operations["createTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a task */
+        get: operations["getTask"];
+        put?: never;
+        post?: never;
+        /** Move a task to the trash */
+        delete: operations["deleteTask"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a task
+         * @description JSON Merge Patch with `If-Match`, as for journal entries.
+         */
+        patch: operations["updateTask"];
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a task done */
+        post: operations["completeTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tasks/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a done task open again */
+        post: operations["reopenTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read your Self profile */
+        get: operations["getSelfProfile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit your Self profile
+         * @description JSON Merge Patch with `If-Match`, as for journal entries.
+         */
+        patch: operations["updateSelfProfile"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        JournalEntry: {
+            /** Format: uuid */
+            id: string;
+            /** @description The day the entry is about, YYYY-MM-DD. */
+            entry_date: string;
+            title?: string;
+            body: string;
+            /** @description How the day felt, from 1 (low) to 5 (high). */
+            mood?: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        JournalEntryInput: {
+            entry_date: string;
+            title?: string;
+            body: string;
+            mood?: number;
+        };
+        JournalEntryList: {
+            items: components["schemas"]["JournalEntry"][];
+            /** Format: uuid */
+            next_cursor?: string;
+        };
+        Task: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            notes?: string;
+            due_on?: string;
+            completed: boolean;
+            /** Format: date-time */
+            completed_at?: string;
+            /** @description Open and due before today. */
+            overdue: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        TaskInput: {
+            title: string;
+            notes?: string;
+            due_on?: string;
+        };
+        TaskList: {
+            items: components["schemas"]["Task"][];
+            /** Format: uuid */
+            next_cursor?: string;
+        };
+        SelfProfile: {
+            preferred_name?: string;
+            birth_date?: string;
+            /** @description What matters most to you, in your own words. */
+            core_values?: string;
+            bio?: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        /** @description Fields to change. A null value clears the field. Unknown fields are refused. */
+        MergePatch: {
+            [key: string]: unknown;
+        };
         Meta: {
             /** @example Soma */
             name: string;
@@ -202,6 +408,9 @@ export interface components {
         };
     };
     parameters: {
+        ResourceId: string;
+        /** @description The ETag of the version being edited, for example "3". */
+        IfMatch: string;
         ContactId: string;
     };
     requestBodies: never;
@@ -376,6 +585,358 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Contact"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listJournalEntries: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of entries, newest saved first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntryList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createJournalEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JournalEntryInput"];
+            };
+        };
+        responses: {
+            /** @description The saved entry. */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntry"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getJournalEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The entry. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntry"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteJournalEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Moved to the trash. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateJournalEntry: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated entry. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JournalEntry"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listTasks: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+                open_only?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of tasks, newest saved first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskInput"];
+            };
+        };
+        responses: {
+            /** @description The new task. */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The task. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Moved to the trash. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateTask: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated task. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    completeTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The task, now done. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    reopenTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ResourceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The task, open again. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Task"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getSelfProfile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The profile. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelfProfile"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateSelfProfile: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example "3". */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MergePatch"];
+            };
+        };
+        responses: {
+            /** @description The updated profile. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelfProfile"];
                 };
             };
             default: components["responses"]["Problem"];

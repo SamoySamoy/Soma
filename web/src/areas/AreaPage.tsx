@@ -4,7 +4,10 @@ import { Link, useParams } from "react-router";
 
 import { type BodyArea, useBodyMap } from "./bodymap/api";
 import { areaSummary, statusColor, statusLabel } from "./bodymap/status";
+import { JournalPage } from "./mind/JournalPage";
 import { PeoplePage } from "./heart/PeoplePage";
+import { SelfPage } from "./self/SelfPage";
+import { TasksPage } from "./responsibilities/TasksPage";
 
 /**
  * One area of life. It opens with the area's status and summary (BODY-05),
@@ -41,9 +44,25 @@ export function AreaPage() {
   return (
     <Stack gap="lg">
       <AreaHeader area={area} />
-      {area.key === "heart" && area.enabled && <PeoplePage />}
+      {area.enabled && <AreaContent area={area.key} />}
     </Stack>
   );
+}
+
+/** Which page each enabled area shows. */
+function AreaContent({ area }: { area: BodyArea["key"] }) {
+  switch (area) {
+    case "heart":
+      return <PeoplePage />;
+    case "mind":
+      return <JournalPage />;
+    case "responsibilities":
+      return <TasksPage />;
+    case "self":
+      return <SelfPage />;
+    default:
+      return null;
+  }
 }
 
 function AreaHeader({ area }: { area: BodyArea }) {

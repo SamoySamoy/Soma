@@ -4,6 +4,9 @@ export type Call = { method: string; url: string; body: unknown; ifMatch: string
 
 type Options = {
   contacts?: unknown[];
+  journal?: unknown[];
+  tasks?: unknown[];
+  self?: Record<string, unknown>;
   bodymap?: unknown;
   /** When set, every body map request fails with this status. */
   bodymapStatus?: number;
@@ -11,31 +14,45 @@ type Options = {
   write?: { status: number; body?: unknown };
 };
 
-/** A body map in which only Heart is built and has one birthday coming up. */
+const built = new Set(["heart", "mind", "responsibilities", "self"]);
+
+/**
+ * A body map in which Heart, Mind, Responsibilities and Self are built, with
+ * one birthday coming up and a journal entry from today. The rest are not built.
+ */
 export function defaultBodyMap() {
   const areas = [
-    ["mind", "P1"],
-    ["self", "P1"],
-    ["responsibilities", "P1"],
-    ["heart", "P1"],
-    ["body", "P2"],
-    ["work", "P2"],
-    ["money", "P1"],
-    ["growth", "P2"],
-    ["journeys", "P3"],
-    ["home", "P2"],
-    ["papers", "P2"],
-  ].map(([key, phase]) => {
-    const enabled = key === "heart";
+    ["mind", "P1", { entries: 1, days_since_last: 0 }],
+    ["self", "P1", { filled: 1, fields: 4 }],
+    ["responsibilities", "P1", { overdue: 0, due_today: 0, overdue_long: 0 }],
+    ["heart", "P1", { birthdays_soon: 1 }],
+    ["body", "P2", {}],
+    ["work", "P2", {}],
+    ["money", "P1", {}],
+    ["growth", "P2", {}],
+    ["journeys", "P3", {}],
+    ["home", "P2", {}],
+    ["papers", "P2", {}],
+  ].map(([key, phase, counts]) => {
+    const enabled = built.has(key as string);
     return {
       key,
       phase,
       status: enabled ? "attention" : "unknown",
       enabled,
-      counts: enabled ? { birthdays_soon: 1 } : {},
+      counts: enabled ? counts : {},
     };
   });
   return { as_of: "2026-10-06T09:00:00Z", areas };
+}
+
+/** A Self profile with one field filled in, at version 3. */
+export function defaultSelfProfile() {
+  return {
+    preferred_name: "Lan",
+    version: 3,
+    updated_at: "2026-10-05T10:00:00Z",
+  };
 }
 
 /**
@@ -77,6 +94,16 @@ export function fakeApi(options: Options = {}): Call[] {
       }
       if (url.pathname === "/api/v1/people/contacts") {
         return json(200, { items: options.contacts ?? [] });
+      }
+      if (url.pathname === "/api/v1/journal/entries") {
+        return json(200, { items: options.journal ?? [] });
+      }
+      if (url.pathname === "/api/v1/tasks") {
+        return json(200, { items: options.tasks ?? [] });
+      }
+      if (url.pathname === "/api/v1/self") {
+        const profile = options.self ?? defaultSelfProfile();
+        return json(200, profile, `"${String(profile.version)}"`);
       }
       return json(404, {
         type: "about:blank",
