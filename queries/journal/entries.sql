@@ -24,8 +24,9 @@ SET entry_date = @entry_date, title = @title, body = @body, mood = @mood
 WHERE id = @id AND space_id = @space_id AND author_id = @author_id;
 
 -- name: LastEntryStats :one
--- The newest entry date and how many entries exist, for the Mind area.
-SELECT max(j.entry_date)::date AS last_entry_date, count(*)::bigint AS entries
+-- The newest entry date and how many entries exist, for the Mind area. With no
+-- entries the date is a placeholder; callers check the count first.
+SELECT COALESCE(max(j.entry_date), '0001-01-01'::date)::date AS last_entry_date, count(*)::bigint AS entries
 FROM journal_entries j
 JOIN entities e ON e.id = j.id
 WHERE j.space_id = @space_id AND j.author_id = @author_id AND e.deleted_at IS NULL;

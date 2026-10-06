@@ -18,7 +18,10 @@ import (
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
 	"github.com/SamoySamoy/Soma/internal/bodymap"
+	"github.com/SamoySamoy/Soma/internal/modules/journal"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
+	"github.com/SamoySamoy/Soma/internal/modules/self"
+	"github.com/SamoySamoy/Soma/internal/modules/tasks"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
 	"github.com/SamoySamoy/Soma/internal/platform/db"
@@ -49,7 +52,15 @@ func newLocalServer(t *testing.T) *httptest.Server {
 		SchemaVersion: 0,
 		Web:           fstest.MapFS{},
 		People:        people.NewService(d, clk),
-		BodyMap:       bodymap.NewService(d, clk, map[bodymap.Area]bodymap.Provider{bodymap.AreaHeart: people.BodymapProvider{}}),
+		BodyMap: bodymap.NewService(d, clk, map[bodymap.Area]bodymap.Provider{
+			bodymap.AreaHeart:          people.BodymapProvider{},
+			bodymap.AreaMind:           journal.BodymapProvider{},
+			bodymap.AreaResponsibility: tasks.BodymapProvider{},
+			bodymap.AreaSelf:           self.BodymapProvider{},
+		}),
+		Journal: journal.NewService(d, clk),
+		Tasks:   tasks.NewService(d, clk),
+		Self:    self.NewService(d, clk),
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -252,9 +263,13 @@ func TestBodyMapOverHTTP(t *testing.T) {
 		if heart := areas["heart"]; heart.Status != apigen.Calm {
 			t.Errorf("heart status = %q, want calm", heart.Status)
 		}
-		mind := areas["mind"]
-		if mind.Enabled || mind.Status != apigen.Unknown || mind.Phase != apigen.P1 {
-			t.Errorf("mind = %+v, want disabled, unknown, phase P1", mind)
+		// Mind is built now: with no entries yet it is calm, not an error.
+		if mind := areas["mind"]; !mind.Enabled || mind.Status != apigen.Calm {
+			t.Errorf("mind = %+v, want enabled and calm", mind)
+		}
+		// Money is still not built.
+		if money := areas["money"]; money.Enabled || money.Status != apigen.Unknown {
+			t.Errorf("money = %+v, want disabled and unknown", money)
 		}
 	})
 }

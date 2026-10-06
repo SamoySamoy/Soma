@@ -82,7 +82,7 @@ func (q *Queries) InsertEntry(ctx context.Context, arg InsertEntryParams) error 
 }
 
 const lastEntryStats = `-- name: LastEntryStats :one
-SELECT max(j.entry_date)::date AS last_entry_date, count(*)::bigint AS entries
+SELECT COALESCE(max(j.entry_date), '0001-01-01'::date)::date AS last_entry_date, count(*)::bigint AS entries
 FROM journal_entries j
 JOIN entities e ON e.id = j.id
 WHERE j.space_id = $1 AND j.author_id = $2 AND e.deleted_at IS NULL
@@ -98,7 +98,8 @@ type LastEntryStatsRow struct {
 	Entries       int64
 }
 
-// The newest entry date and how many entries exist, for the Mind area.
+// The newest entry date and how many entries exist, for the Mind area. With no
+// entries the date is a placeholder; callers check the count first.
 func (q *Queries) LastEntryStats(ctx context.Context, arg LastEntryStatsParams) (LastEntryStatsRow, error) {
 	row := q.db.QueryRow(ctx, lastEntryStats, arg.SpaceID, arg.AuthorID)
 	var i LastEntryStatsRow

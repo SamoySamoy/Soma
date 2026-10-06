@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"github.com/SamoySamoy/Soma/internal/bodymap"
 	corestore "github.com/SamoySamoy/Soma/internal/core/store"
 	"github.com/SamoySamoy/Soma/internal/modules/journal"
 	jstore "github.com/SamoySamoy/Soma/internal/modules/journal/store"
@@ -206,3 +207,24 @@ func TestListPagesNewestFirst(t *testing.T) {
 }
 
 func kindOf(err error) apperr.Kind { return apperr.KindOf(err) }
+
+// Regression: with no entries yet, the Mind status must still load (it used to
+// fail scanning NULL into a date and broke the whole body map).
+func TestMindStatusWithNoEntries(t *testing.T) {
+	t.Parallel()
+	e := newEnv(t)
+	ctx := as(t.Context(), space.LocalOwnerID)
+	err := e.app.InReadOnlyTx(ctx, func(tx pgx.Tx) error {
+		res, err := journal.BodymapProvider{}.Status(ctx, tx, space.LocalSpaceID, e.clk.Now())
+		if err != nil {
+			return err
+		}
+		if res.Level != bodymap.LevelCalm || res.Counts["entries"] != 0 {
+			t.Errorf("status = %+v, want calm with no entries", res)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Status with no entries: %v", err)
+	}
+}
