@@ -12,6 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const insertSelfProfile = `-- name: InsertSelfProfile :exec
+INSERT INTO self_profiles (space_id, updated_at)
+VALUES ($1, $2)
+ON CONFLICT (space_id) DO NOTHING
+`
+
+type InsertSelfProfileParams struct {
+	SpaceID uuid.UUID
+	Now     time.Time
+}
+
+// Every space has one Self profile, created with the space. Idempotent.
+func (q *Queries) InsertSelfProfile(ctx context.Context, arg InsertSelfProfileParams) error {
+	_, err := q.db.Exec(ctx, insertSelfProfile, arg.SpaceID, arg.Now)
+	return err
+}
+
 const insertSpace = `-- name: InsertSpace :exec
 INSERT INTO spaces (id, name, created_by, created_at)
 VALUES ($1, $2, $3, $4)

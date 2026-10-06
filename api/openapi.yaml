@@ -173,8 +173,346 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /api/v1/journal/entries:
+    get:
+      operationId: listJournalEntries
+      summary: List your journal entries
+      description: Only your own entries are listed; other members never see them.
+      tags: [journal]
+      x-soma-permission: journal:read
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A page of entries, newest saved first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntryList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createJournalEntry
+      summary: Write an entry
+      tags: [journal]
+      x-soma-permission: journal:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalEntryInput"
+      responses:
+        "201":
+          description: The saved entry.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/journal/entries/{id}:
+    get:
+      operationId: getJournalEntry
+      summary: Read an entry
+      tags: [journal]
+      x-soma-permission: journal:read
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The entry.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateJournalEntry
+      summary: Edit an entry
+      description: |
+        JSON Merge Patch. Send only the fields to change; `null` clears one.
+        Requires `If-Match` with the entry's current ETag; otherwise 412.
+      tags: [journal]
+      x-soma-permission: journal:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated entry.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalEntry"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteJournalEntry
+      summary: Move an entry to the trash
+      tags: [journal]
+      x-soma-permission: journal:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Moved to the trash.
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/tasks:
+    get:
+      operationId: listTasks
+      summary: List tasks
+      tags: [tasks]
+      x-soma-permission: tasks:read
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: open_only
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: A page of tasks, newest saved first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createTask
+      summary: Add a task
+      tags: [tasks]
+      x-soma-permission: tasks:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskInput"
+      responses:
+        "201":
+          description: The new task.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/tasks/{id}:
+    get:
+      operationId: getTask
+      summary: Read a task
+      tags: [tasks]
+      x-soma-permission: tasks:read
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The task.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateTask
+      summary: Edit a task
+      description: JSON Merge Patch with `If-Match`, as for journal entries.
+      tags: [tasks]
+      x-soma-permission: tasks:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated task.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteTask
+      summary: Move a task to the trash
+      tags: [tasks]
+      x-soma-permission: tasks:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Moved to the trash.
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/tasks/{id}/complete:
+    post:
+      operationId: completeTask
+      summary: Mark a task done
+      tags: [tasks]
+      x-soma-permission: tasks:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The task, now done.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/tasks/{id}/reopen:
+    post:
+      operationId: reopenTask
+      summary: Mark a done task open again
+      tags: [tasks]
+      x-soma-permission: tasks:write
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: The task, open again.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/self:
+    get:
+      operationId: getSelfProfile
+      summary: Read your Self profile
+      tags: [self]
+      x-soma-permission: self:read
+      responses:
+        "200":
+          description: The profile.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelfProfile"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateSelfProfile
+      summary: Edit your Self profile
+      description: JSON Merge Patch with `If-Match`, as for journal entries.
+      tags: [self]
+      x-soma-permission: self:write
+      parameters:
+        - $ref: "#/components/parameters/IfMatch"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MergePatch"
+      responses:
+        "200":
+          description: The updated profile.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelfProfile"
+        default:
+          $ref: "#/components/responses/Problem"
+
 components:
   parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IfMatch:
+      name: If-Match
+      in: header
+      required: false
+      description: The ETag of the version being edited, for example "3".
+      schema:
+        type: string
     ContactId:
       name: id
       in: path
@@ -191,6 +529,159 @@ components:
         example: '"3"'
 
   schemas:
+    JournalEntry:
+      type: object
+      required: [id, entry_date, body, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        entry_date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          description: The day the entry is about, YYYY-MM-DD.
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type: string
+          maxLength: 100000
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: How the day felt, from 1 (low) to 5 (high).
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    JournalEntryInput:
+      type: object
+      additionalProperties: false
+      required: [entry_date, body]
+      properties:
+        entry_date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type: string
+          maxLength: 100000
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    JournalEntryList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalEntry"
+        next_cursor:
+          type: string
+          format: uuid
+
+    Task:
+      type: object
+      required: [id, title, completed, overdue, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 200
+        notes:
+          type: string
+          maxLength: 5000
+        due_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        completed:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+        overdue:
+          type: boolean
+          description: Open and due before today.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    TaskInput:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        notes:
+          type: string
+          maxLength: 5000
+        due_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+
+    TaskList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+        next_cursor:
+          type: string
+          format: uuid
+
+    SelfProfile:
+      type: object
+      required: [version, updated_at]
+      properties:
+        preferred_name:
+          type: string
+          maxLength: 100
+        birth_date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        core_values:
+          type: string
+          maxLength: 2000
+          description: What matters most to you, in your own words.
+        bio:
+          type: string
+          maxLength: 5000
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    MergePatch:
+      type: object
+      description: Fields to change. A null value clears the field. Unknown fields are refused.
+      additionalProperties: {}
+
     Meta:
       type: object
       additionalProperties: false

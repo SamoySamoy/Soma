@@ -22,9 +22,15 @@ type Permission string
 
 // Permissions. Add one per module action as modules arrive.
 const (
-	BodymapRead Permission = "bodymap:read"
-	PeopleRead  Permission = "people:read"
-	PeopleWrite Permission = "people:write"
+	BodymapRead  Permission = "bodymap:read"
+	JournalRead  Permission = "journal:read"
+	JournalWrite Permission = "journal:write"
+	PeopleRead   Permission = "people:read"
+	PeopleWrite  Permission = "people:write"
+	SelfRead     Permission = "self:read"
+	SelfWrite    Permission = "self:write"
+	TasksRead    Permission = "tasks:read"
+	TasksWrite   Permission = "tasks:write"
 )
 
 // Role is a member's role in a space.
@@ -37,10 +43,20 @@ const (
 	RoleViewer Role = "viewer"
 )
 
+// Owners and editors may do everything in a space. Viewers may read, but
+// journal entries are still only ever shown to their author.
 var grants = map[Role]map[Permission]bool{
-	RoleOwner:  {BodymapRead: true, PeopleRead: true, PeopleWrite: true},
-	RoleEditor: {BodymapRead: true, PeopleRead: true, PeopleWrite: true},
-	RoleViewer: {BodymapRead: true, PeopleRead: true},
+	RoleOwner: {
+		BodymapRead: true, JournalRead: true, JournalWrite: true, PeopleRead: true, PeopleWrite: true,
+		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true,
+	},
+	RoleEditor: {
+		BodymapRead: true, JournalRead: true, JournalWrite: true, PeopleRead: true, PeopleWrite: true,
+		SelfRead: true, SelfWrite: true, TasksRead: true, TasksWrite: true,
+	},
+	RoleViewer: {
+		BodymapRead: true, JournalRead: true, PeopleRead: true, SelfRead: true, TasksRead: true,
+	},
 }
 
 // Allows reports whether role grants perm. Unknown roles grant nothing.

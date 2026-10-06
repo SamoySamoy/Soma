@@ -17,7 +17,10 @@ import (
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
 	"github.com/SamoySamoy/Soma/internal/bodymap"
+	"github.com/SamoySamoy/Soma/internal/modules/journal"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
+	"github.com/SamoySamoy/Soma/internal/modules/self"
+	"github.com/SamoySamoy/Soma/internal/modules/tasks"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
 	"github.com/SamoySamoy/Soma/internal/platform/db"
@@ -43,6 +46,10 @@ type Deps struct {
 	People *people.Service
 	// BodyMap backs the landing page.
 	BodyMap *bodymap.Service
+	// Journal, Tasks and Self back their areas.
+	Journal *journal.Service
+	Tasks   *tasks.Service
+	Self    *self.Service
 }
 
 // New returns the root HTTP handler. It refuses every mode but local, because
@@ -64,7 +71,14 @@ func New(d Deps) (http.Handler, error) {
 	mux.Handle("GET /healthz", httpx.Liveness())
 	mux.Handle("GET /readyz", httpx.ReadinessHandler(d.Ready, d.SchemaVersion))
 
-	strict := apigen.NewStrictHandlerWithOptions(&api{cfg: d.Config, people: people.NewHandler(d.People), bodymap: bodymap.NewHandler(d.BodyMap)}, nil, apigen.StrictHTTPServerOptions{
+	strict := apigen.NewStrictHandlerWithOptions(&api{
+		cfg:     d.Config,
+		people:  people.NewHandler(d.People),
+		bodymap: bodymap.NewHandler(d.BodyMap),
+		journal: journal.NewHandler(d.Journal),
+		tasks:   tasks.NewHandler(d.Tasks),
+		self:    self.NewHandler(d.Self),
+	}, nil, apigen.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  badRequest,
 		ResponseErrorHandlerFunc: httpx.WriteError,
 	})

@@ -26,7 +26,7 @@ type JournalEntry struct {
 	ID        uuid.UUID
 	SpaceID   uuid.UUID
 	AuthorID  uuid.UUID
-	EntryDate pgtype.Date
+	EntryDate time.Time
 	Title     *string
 	Body      string
 	Mood      pgtype.Int2
@@ -39,7 +39,7 @@ type PeopleContact struct {
 	Nickname    *string
 	Email       *string
 	Phone       *string
-	Birthday    pgtype.Date
+	Birthday    *time.Time
 	HowWeMet    *string
 	Notes       *string
 }
@@ -47,7 +47,7 @@ type PeopleContact struct {
 type SelfProfile struct {
 	SpaceID       uuid.UUID
 	PreferredName *string
-	BirthDate     pgtype.Date
+	BirthDate     *time.Time
 	CoreValues    *string
 	Bio           *string
 	UpdatedAt     time.Time
@@ -73,7 +73,7 @@ type Task struct {
 	SpaceID     uuid.UUID
 	Title       string
 	Notes       *string
-	DueOn       pgtype.Date
+	DueOn       *time.Time
 	CompletedAt *time.Time
 }
 

@@ -45,26 +45,33 @@ func EnsureLocal(ctx context.Context, d *db.DB, clk clock.Clock) error {
 	err := d.InTx(ctx, func(tx pgx.Tx) error {
 		q := store.New(tx)
 		_, err := q.GetMemberRole(ctx, store.GetMemberRoleParams{SpaceID: LocalSpaceID, UserID: LocalOwnerID})
-		if err == nil {
-			return nil // already set up
-		}
-		if !errors.Is(err, pgx.ErrNoRows) {
+		switch {
+		case err == nil:
+			// Already set up. Fall through to the idempotent profile insert, so
+			// databases created before the Self profile existed get one too.
+		case errors.Is(err, pgx.ErrNoRows):
+			if err := q.UpsertUser(ctx, store.UpsertUserParams{
+				ID: LocalOwnerID, DisplayName: "You", Now: now,
+			}); err != nil {
+				return fmt.Errorf("upsert local owner: %w", err)
+			}
+			if err := q.InsertSpace(ctx, store.InsertSpaceParams{
+				ID: LocalSpaceID, Name: "Personal", CreatedBy: LocalOwnerID, Now: now,
+			}); err != nil {
+				return fmt.Errorf("insert personal space: %w", err)
+			}
+			if err := q.InsertSpaceMember(ctx, store.InsertSpaceMemberParams{
+				SpaceID: LocalSpaceID, UserID: LocalOwnerID, Role: "owner", Now: now,
+			}); err != nil {
+				return fmt.Errorf("insert owner membership: %w", err)
+			}
+		default:
 			return fmt.Errorf("check owner membership: %w", err)
 		}
-		if err := q.UpsertUser(ctx, store.UpsertUserParams{
-			ID: LocalOwnerID, DisplayName: "You", Now: now,
+		if err := q.InsertSelfProfile(ctx, store.InsertSelfProfileParams{
+			SpaceID: LocalSpaceID, Now: now,
 		}); err != nil {
-			return fmt.Errorf("upsert local owner: %w", err)
-		}
-		if err := q.InsertSpace(ctx, store.InsertSpaceParams{
-			ID: LocalSpaceID, Name: "Personal", CreatedBy: LocalOwnerID, Now: now,
-		}); err != nil {
-			return fmt.Errorf("insert personal space: %w", err)
-		}
-		if err := q.InsertSpaceMember(ctx, store.InsertSpaceMemberParams{
-			SpaceID: LocalSpaceID, UserID: LocalOwnerID, Role: "owner", Now: now,
-		}); err != nil {
-			return fmt.Errorf("insert owner membership: %w", err)
+			return fmt.Errorf("insert self profile: %w", err)
 		}
 		return nil
 	})

@@ -148,7 +148,8 @@ tasks:
       # absent elsewhere; an empty value breaks the mount.
       SOCKET_OVERRIDE: '{{if eq OS "windows"}}TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock {{end}}'
     cmds:
-      - "{{.SOCKET_OVERRIDE}}go test -tags integration {{.RACE}} -count=1 ./..."
+      # -p 1: one test package at a time, so containers start one at a time.
+      - "{{.SOCKET_OVERRIDE}}go test -tags integration {{.RACE}} -count=1 -p 1 ./..."
 
   vuln:
     desc: Check dependencies for known vulnerabilities

@@ -202,6 +202,39 @@ type ContactList struct {
 // ContactPatch Fields to change. A `null` value clears the field.
 type ContactPatch map[string]*string
 
+// JournalEntry defines model for JournalEntry.
+type JournalEntry struct {
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"created_at"`
+
+	// EntryDate The day the entry is about, YYYY-MM-DD.
+	EntryDate string             `json:"entry_date"`
+	Id        openapi_types.UUID `json:"id"`
+
+	// Mood How the day felt, from 1 (low) to 5 (high).
+	Mood      *int      `json:"mood,omitempty"`
+	Title     *string   `json:"title,omitempty"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Version   int       `json:"version"`
+}
+
+// JournalEntryInput defines model for JournalEntryInput.
+type JournalEntryInput struct {
+	Body      string  `json:"body"`
+	EntryDate string  `json:"entry_date"`
+	Mood      *int    `json:"mood,omitempty"`
+	Title     *string `json:"title,omitempty"`
+}
+
+// JournalEntryList defines model for JournalEntryList.
+type JournalEntryList struct {
+	Items      []JournalEntry      `json:"items"`
+	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
+}
+
+// MergePatch Fields to change. A null value clears the field. Unknown fields are refused.
+type MergePatch map[string]interface{}
+
 // Meta defines model for Meta.
 type Meta struct {
 	Mode MetaMode `json:"mode"`
@@ -239,8 +272,67 @@ type Problem struct {
 	Type string `json:"type"`
 }
 
+// SelfProfile defines model for SelfProfile.
+type SelfProfile struct {
+	Bio       *string `json:"bio,omitempty"`
+	BirthDate *string `json:"birth_date,omitempty"`
+
+	// CoreValues What matters most to you, in your own words.
+	CoreValues    *string   `json:"core_values,omitempty"`
+	PreferredName *string   `json:"preferred_name,omitempty"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Version       int       `json:"version"`
+}
+
+// Task defines model for Task.
+type Task struct {
+	Completed   bool               `json:"completed"`
+	CompletedAt *time.Time         `json:"completed_at,omitempty"`
+	CreatedAt   time.Time          `json:"created_at"`
+	DueOn       *string            `json:"due_on,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	Notes       *string            `json:"notes,omitempty"`
+
+	// Overdue Open and due before today.
+	Overdue   bool      `json:"overdue"`
+	Title     string    `json:"title"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Version   int       `json:"version"`
+}
+
+// TaskInput defines model for TaskInput.
+type TaskInput struct {
+	DueOn *string `json:"due_on,omitempty"`
+	Notes *string `json:"notes,omitempty"`
+	Title string  `json:"title"`
+}
+
+// TaskList defines model for TaskList.
+type TaskList struct {
+	Items      []Task              `json:"items"`
+	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
+}
+
 // ContactId defines model for ContactId.
 type ContactId = openapi_types.UUID
+
+// IfMatch defines model for IfMatch.
+type IfMatch = string
+
+// ResourceId defines model for ResourceId.
+type ResourceId = openapi_types.UUID
+
+// ListJournalEntriesParams defines parameters for ListJournalEntries.
+type ListJournalEntriesParams struct {
+	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// UpdateJournalEntryParams defines parameters for UpdateJournalEntry.
+type UpdateJournalEntryParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
 
 // ListContactsParams defines parameters for ListContacts.
 type ListContactsParams struct {
@@ -254,17 +346,66 @@ type UpdateContactParams struct {
 	IfMatch *string `json:"If-Match,omitempty"`
 }
 
+// UpdateSelfProfileParams defines parameters for UpdateSelfProfile.
+type UpdateSelfProfileParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
+
+// ListTasksParams defines parameters for ListTasks.
+type ListTasksParams struct {
+	Limit    *int                `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor   *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+	OpenOnly *bool               `form:"open_only,omitempty" json:"open_only,omitempty"`
+}
+
+// UpdateTaskParams defines parameters for UpdateTask.
+type UpdateTaskParams struct {
+	// IfMatch The ETag of the version being edited, for example "3".
+	IfMatch *IfMatch `json:"If-Match,omitempty"`
+}
+
+// CreateJournalEntryJSONRequestBody defines body for CreateJournalEntry for application/json ContentType.
+type CreateJournalEntryJSONRequestBody = JournalEntryInput
+
+// UpdateJournalEntryJSONRequestBody defines body for UpdateJournalEntry for application/json ContentType.
+type UpdateJournalEntryJSONRequestBody = MergePatch
+
 // CreateContactJSONRequestBody defines body for CreateContact for application/json ContentType.
 type CreateContactJSONRequestBody = ContactInput
 
 // UpdateContactJSONRequestBody defines body for UpdateContact for application/json ContentType.
 type UpdateContactJSONRequestBody = ContactPatch
 
+// UpdateSelfProfileJSONRequestBody defines body for UpdateSelfProfile for application/json ContentType.
+type UpdateSelfProfileJSONRequestBody = MergePatch
+
+// CreateTaskJSONRequestBody defines body for CreateTask for application/json ContentType.
+type CreateTaskJSONRequestBody = TaskInput
+
+// UpdateTaskJSONRequestBody defines body for UpdateTask for application/json ContentType.
+type UpdateTaskJSONRequestBody = MergePatch
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// GetBodyMap The body map
 	// (GET /api/v1/bodymap)
 	GetBodyMap(w http.ResponseWriter, r *http.Request)
+	// ListJournalEntries List your journal entries
+	// (GET /api/v1/journal/entries)
+	ListJournalEntries(w http.ResponseWriter, r *http.Request, params ListJournalEntriesParams)
+	// CreateJournalEntry Write an entry
+	// (POST /api/v1/journal/entries)
+	CreateJournalEntry(w http.ResponseWriter, r *http.Request)
+	// DeleteJournalEntry Move an entry to the trash
+	// (DELETE /api/v1/journal/entries/{id})
+	DeleteJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// GetJournalEntry Read an entry
+	// (GET /api/v1/journal/entries/{id})
+	GetJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// UpdateJournalEntry Edit an entry
+	// (PATCH /api/v1/journal/entries/{id})
+	UpdateJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateJournalEntryParams)
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(w http.ResponseWriter, r *http.Request)
@@ -283,6 +424,33 @@ type ServerInterface interface {
 	// UpdateContact Update a contact
 	// (PATCH /api/v1/people/contacts/{id})
 	UpdateContact(w http.ResponseWriter, r *http.Request, id ContactId, params UpdateContactParams)
+	// GetSelfProfile Read your Self profile
+	// (GET /api/v1/self)
+	GetSelfProfile(w http.ResponseWriter, r *http.Request)
+	// UpdateSelfProfile Edit your Self profile
+	// (PATCH /api/v1/self)
+	UpdateSelfProfile(w http.ResponseWriter, r *http.Request, params UpdateSelfProfileParams)
+	// ListTasks List tasks
+	// (GET /api/v1/tasks)
+	ListTasks(w http.ResponseWriter, r *http.Request, params ListTasksParams)
+	// CreateTask Add a task
+	// (POST /api/v1/tasks)
+	CreateTask(w http.ResponseWriter, r *http.Request)
+	// DeleteTask Move a task to the trash
+	// (DELETE /api/v1/tasks/{id})
+	DeleteTask(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// GetTask Read a task
+	// (GET /api/v1/tasks/{id})
+	GetTask(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// UpdateTask Edit a task
+	// (PATCH /api/v1/tasks/{id})
+	UpdateTask(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateTaskParams)
+	// CompleteTask Mark a task done
+	// (POST /api/v1/tasks/{id}/complete)
+	CompleteTask(w http.ResponseWriter, r *http.Request, id ResourceId)
+	// ReopenTask Mark a done task open again
+	// (POST /api/v1/tasks/{id}/reopen)
+	ReopenTask(w http.ResponseWriter, r *http.Request, id ResourceId)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -299,6 +467,168 @@ func (siw *ServerInterfaceWrapper) GetBodyMap(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetBodyMap(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListJournalEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListJournalEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListJournalEntriesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListJournalEntries(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateJournalEntry operation middleware
+func (siw *ServerInterfaceWrapper) CreateJournalEntry(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateJournalEntry(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteJournalEntry operation middleware
+func (siw *ServerInterfaceWrapper) DeleteJournalEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteJournalEntry(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetJournalEntry operation middleware
+func (siw *ServerInterfaceWrapper) GetJournalEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetJournalEntry(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateJournalEntry operation middleware
+func (siw *ServerInterfaceWrapper) UpdateJournalEntry(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateJournalEntryParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateJournalEntry(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -484,6 +814,288 @@ func (siw *ServerInterfaceWrapper) UpdateContact(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// GetSelfProfile operation middleware
+func (siw *ServerInterfaceWrapper) GetSelfProfile(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSelfProfile(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateSelfProfile operation middleware
+func (siw *ServerInterfaceWrapper) UpdateSelfProfile(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateSelfProfileParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateSelfProfile(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListTasks operation middleware
+func (siw *ServerInterfaceWrapper) ListTasks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListTasksParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "open_only" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "open_only", r.URL.Query(), &params.OpenOnly, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "open_only"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "open_only", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListTasks(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateTask operation middleware
+func (siw *ServerInterfaceWrapper) CreateTask(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateTask(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteTask operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteTask(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTask operation middleware
+func (siw *ServerInterfaceWrapper) GetTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTask(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateTask operation middleware
+func (siw *ServerInterfaceWrapper) UpdateTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateTaskParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateTask(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CompleteTask operation middleware
+func (siw *ServerInterfaceWrapper) CompleteTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CompleteTask(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ReopenTask operation middleware
+func (siw *ServerInterfaceWrapper) ReopenTask(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ResourceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ReopenTask(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -611,6 +1223,20 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.DeleteContact)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.GetContact)
 	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.UpdateContact)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/journal/entries", wrapper.ListJournalEntries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/journal/entries", wrapper.CreateJournalEntry)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/journal/entries/{id}", wrapper.DeleteJournalEntry)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/journal/entries/{id}", wrapper.GetJournalEntry)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/journal/entries/{id}", wrapper.UpdateJournalEntry)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/tasks", wrapper.ListTasks)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/tasks", wrapper.CreateTask)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/tasks/{id}", wrapper.DeleteTask)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/tasks/{id}", wrapper.GetTask)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/tasks/{id}", wrapper.UpdateTask)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/tasks/{id}/complete", wrapper.CompleteTask)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/tasks/{id}/reopen", wrapper.ReopenTask)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/self", wrapper.GetSelfProfile)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/self", wrapper.UpdateSelfProfile)
 
 	return m
 }
@@ -644,6 +1270,227 @@ type GetBodyMapdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response GetBodyMapdefaultApplicationProblemPlusJSONResponse) VisitGetBodyMapResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJournalEntriesRequestObject struct {
+	Params ListJournalEntriesParams
+}
+
+type ListJournalEntriesResponseObject interface {
+	VisitListJournalEntriesResponse(w http.ResponseWriter) error
+}
+
+type ListJournalEntries200JSONResponse JournalEntryList
+
+func (response ListJournalEntries200JSONResponse) VisitListJournalEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListJournalEntriesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListJournalEntriesdefaultApplicationProblemPlusJSONResponse) VisitListJournalEntriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateJournalEntryRequestObject struct {
+	Body *CreateJournalEntryJSONRequestBody
+}
+
+type CreateJournalEntryResponseObject interface {
+	VisitCreateJournalEntryResponse(w http.ResponseWriter) error
+}
+
+type CreateJournalEntry201ResponseHeaders struct {
+	ETag *string
+}
+
+type CreateJournalEntry201JSONResponse struct {
+	Body    JournalEntry
+	Headers CreateJournalEntry201ResponseHeaders
+}
+
+func (response CreateJournalEntry201JSONResponse) VisitCreateJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateJournalEntrydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateJournalEntrydefaultApplicationProblemPlusJSONResponse) VisitCreateJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteJournalEntryRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type DeleteJournalEntryResponseObject interface {
+	VisitDeleteJournalEntryResponse(w http.ResponseWriter) error
+}
+
+type DeleteJournalEntry204Response struct {
+}
+
+func (response DeleteJournalEntry204Response) VisitDeleteJournalEntryResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteJournalEntrydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteJournalEntrydefaultApplicationProblemPlusJSONResponse) VisitDeleteJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetJournalEntryRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type GetJournalEntryResponseObject interface {
+	VisitGetJournalEntryResponse(w http.ResponseWriter) error
+}
+
+type GetJournalEntry200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetJournalEntry200JSONResponse struct {
+	Body    JournalEntry
+	Headers GetJournalEntry200ResponseHeaders
+}
+
+func (response GetJournalEntry200JSONResponse) VisitGetJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetJournalEntrydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetJournalEntrydefaultApplicationProblemPlusJSONResponse) VisitGetJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateJournalEntryRequestObject struct {
+	Id     ResourceId `json:"id"`
+	Params UpdateJournalEntryParams
+	Body   *UpdateJournalEntryJSONRequestBody
+}
+
+type UpdateJournalEntryResponseObject interface {
+	VisitUpdateJournalEntryResponse(w http.ResponseWriter) error
+}
+
+type UpdateJournalEntry200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateJournalEntry200JSONResponse struct {
+	Body    JournalEntry
+	Headers UpdateJournalEntry200ResponseHeaders
+}
+
+func (response UpdateJournalEntry200JSONResponse) VisitUpdateJournalEntryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateJournalEntrydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateJournalEntrydefaultApplicationProblemPlusJSONResponse) VisitUpdateJournalEntryResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -914,11 +1761,443 @@ func (response UpdateContactdefaultApplicationProblemPlusJSONResponse) VisitUpda
 	return err
 }
 
+type GetSelfProfileRequestObject struct {
+}
+
+type GetSelfProfileResponseObject interface {
+	VisitGetSelfProfileResponse(w http.ResponseWriter) error
+}
+
+type GetSelfProfile200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetSelfProfile200JSONResponse struct {
+	Body    SelfProfile
+	Headers GetSelfProfile200ResponseHeaders
+}
+
+func (response GetSelfProfile200JSONResponse) VisitGetSelfProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSelfProfiledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetSelfProfiledefaultApplicationProblemPlusJSONResponse) VisitGetSelfProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateSelfProfileRequestObject struct {
+	Params UpdateSelfProfileParams
+	Body   *UpdateSelfProfileJSONRequestBody
+}
+
+type UpdateSelfProfileResponseObject interface {
+	VisitUpdateSelfProfileResponse(w http.ResponseWriter) error
+}
+
+type UpdateSelfProfile200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateSelfProfile200JSONResponse struct {
+	Body    SelfProfile
+	Headers UpdateSelfProfile200ResponseHeaders
+}
+
+func (response UpdateSelfProfile200JSONResponse) VisitUpdateSelfProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateSelfProfiledefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateSelfProfiledefaultApplicationProblemPlusJSONResponse) VisitUpdateSelfProfileResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasksRequestObject struct {
+	Params ListTasksParams
+}
+
+type ListTasksResponseObject interface {
+	VisitListTasksResponse(w http.ResponseWriter) error
+}
+
+type ListTasks200JSONResponse TaskList
+
+func (response ListTasks200JSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListTasksdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListTasksdefaultApplicationProblemPlusJSONResponse) VisitListTasksResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTaskRequestObject struct {
+	Body *CreateTaskJSONRequestBody
+}
+
+type CreateTaskResponseObject interface {
+	VisitCreateTaskResponse(w http.ResponseWriter) error
+}
+
+type CreateTask201ResponseHeaders struct {
+	ETag *string
+}
+
+type CreateTask201JSONResponse struct {
+	Body    Task
+	Headers CreateTask201ResponseHeaders
+}
+
+func (response CreateTask201JSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateTaskdefaultApplicationProblemPlusJSONResponse) VisitCreateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTaskRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type DeleteTaskResponseObject interface {
+	VisitDeleteTaskResponse(w http.ResponseWriter) error
+}
+
+type DeleteTask204Response struct {
+}
+
+func (response DeleteTask204Response) VisitDeleteTaskResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteTaskdefaultApplicationProblemPlusJSONResponse) VisitDeleteTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTaskRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type GetTaskResponseObject interface {
+	VisitGetTaskResponse(w http.ResponseWriter) error
+}
+
+type GetTask200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetTask200JSONResponse struct {
+	Body    Task
+	Headers GetTask200ResponseHeaders
+}
+
+func (response GetTask200JSONResponse) VisitGetTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetTaskdefaultApplicationProblemPlusJSONResponse) VisitGetTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTaskRequestObject struct {
+	Id     ResourceId `json:"id"`
+	Params UpdateTaskParams
+	Body   *UpdateTaskJSONRequestBody
+}
+
+type UpdateTaskResponseObject interface {
+	VisitUpdateTaskResponse(w http.ResponseWriter) error
+}
+
+type UpdateTask200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateTask200JSONResponse struct {
+	Body    Task
+	Headers UpdateTask200ResponseHeaders
+}
+
+func (response UpdateTask200JSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateTaskdefaultApplicationProblemPlusJSONResponse) VisitUpdateTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CompleteTaskRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type CompleteTaskResponseObject interface {
+	VisitCompleteTaskResponse(w http.ResponseWriter) error
+}
+
+type CompleteTask200ResponseHeaders struct {
+	ETag *string
+}
+
+type CompleteTask200JSONResponse struct {
+	Body    Task
+	Headers CompleteTask200ResponseHeaders
+}
+
+func (response CompleteTask200JSONResponse) VisitCompleteTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CompleteTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CompleteTaskdefaultApplicationProblemPlusJSONResponse) VisitCompleteTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenTaskRequestObject struct {
+	Id ResourceId `json:"id"`
+}
+
+type ReopenTaskResponseObject interface {
+	VisitReopenTaskResponse(w http.ResponseWriter) error
+}
+
+type ReopenTask200ResponseHeaders struct {
+	ETag *string
+}
+
+type ReopenTask200JSONResponse struct {
+	Body    Task
+	Headers ReopenTask200ResponseHeaders
+}
+
+func (response ReopenTask200JSONResponse) VisitReopenTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReopenTaskdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ReopenTaskdefaultApplicationProblemPlusJSONResponse) VisitReopenTaskResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// GetBodyMap The body map
 	// (GET /api/v1/bodymap)
 	GetBodyMap(ctx context.Context, request GetBodyMapRequestObject) (GetBodyMapResponseObject, error)
+	// ListJournalEntries List your journal entries
+	// (GET /api/v1/journal/entries)
+	ListJournalEntries(ctx context.Context, request ListJournalEntriesRequestObject) (ListJournalEntriesResponseObject, error)
+	// CreateJournalEntry Write an entry
+	// (POST /api/v1/journal/entries)
+	CreateJournalEntry(ctx context.Context, request CreateJournalEntryRequestObject) (CreateJournalEntryResponseObject, error)
+	// DeleteJournalEntry Move an entry to the trash
+	// (DELETE /api/v1/journal/entries/{id})
+	DeleteJournalEntry(ctx context.Context, request DeleteJournalEntryRequestObject) (DeleteJournalEntryResponseObject, error)
+	// GetJournalEntry Read an entry
+	// (GET /api/v1/journal/entries/{id})
+	GetJournalEntry(ctx context.Context, request GetJournalEntryRequestObject) (GetJournalEntryResponseObject, error)
+	// UpdateJournalEntry Edit an entry
+	// (PATCH /api/v1/journal/entries/{id})
+	UpdateJournalEntry(ctx context.Context, request UpdateJournalEntryRequestObject) (UpdateJournalEntryResponseObject, error)
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(ctx context.Context, request GetMetaRequestObject) (GetMetaResponseObject, error)
@@ -937,6 +2216,33 @@ type StrictServerInterface interface {
 	// UpdateContact Update a contact
 	// (PATCH /api/v1/people/contacts/{id})
 	UpdateContact(ctx context.Context, request UpdateContactRequestObject) (UpdateContactResponseObject, error)
+	// GetSelfProfile Read your Self profile
+	// (GET /api/v1/self)
+	GetSelfProfile(ctx context.Context, request GetSelfProfileRequestObject) (GetSelfProfileResponseObject, error)
+	// UpdateSelfProfile Edit your Self profile
+	// (PATCH /api/v1/self)
+	UpdateSelfProfile(ctx context.Context, request UpdateSelfProfileRequestObject) (UpdateSelfProfileResponseObject, error)
+	// ListTasks List tasks
+	// (GET /api/v1/tasks)
+	ListTasks(ctx context.Context, request ListTasksRequestObject) (ListTasksResponseObject, error)
+	// CreateTask Add a task
+	// (POST /api/v1/tasks)
+	CreateTask(ctx context.Context, request CreateTaskRequestObject) (CreateTaskResponseObject, error)
+	// DeleteTask Move a task to the trash
+	// (DELETE /api/v1/tasks/{id})
+	DeleteTask(ctx context.Context, request DeleteTaskRequestObject) (DeleteTaskResponseObject, error)
+	// GetTask Read a task
+	// (GET /api/v1/tasks/{id})
+	GetTask(ctx context.Context, request GetTaskRequestObject) (GetTaskResponseObject, error)
+	// UpdateTask Edit a task
+	// (PATCH /api/v1/tasks/{id})
+	UpdateTask(ctx context.Context, request UpdateTaskRequestObject) (UpdateTaskResponseObject, error)
+	// CompleteTask Mark a task done
+	// (POST /api/v1/tasks/{id}/complete)
+	CompleteTask(ctx context.Context, request CompleteTaskRequestObject) (CompleteTaskResponseObject, error)
+	// ReopenTask Mark a done task open again
+	// (POST /api/v1/tasks/{id}/reopen)
+	ReopenTask(ctx context.Context, request ReopenTaskRequestObject) (ReopenTaskResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -995,6 +2301,149 @@ func (sh *strictHandler) GetBodyMap(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetBodyMapResponseObject); ok {
 		if err := validResponse.VisitGetBodyMapResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListJournalEntries operation middleware
+func (sh *strictHandler) ListJournalEntries(w http.ResponseWriter, r *http.Request, params ListJournalEntriesParams) {
+	var request ListJournalEntriesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListJournalEntries(ctx, request.(ListJournalEntriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListJournalEntries")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListJournalEntriesResponseObject); ok {
+		if err := validResponse.VisitListJournalEntriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateJournalEntry operation middleware
+func (sh *strictHandler) CreateJournalEntry(w http.ResponseWriter, r *http.Request) {
+	var request CreateJournalEntryRequestObject
+
+	var body CreateJournalEntryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateJournalEntry(ctx, request.(CreateJournalEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateJournalEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateJournalEntryResponseObject); ok {
+		if err := validResponse.VisitCreateJournalEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteJournalEntry operation middleware
+func (sh *strictHandler) DeleteJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request DeleteJournalEntryRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteJournalEntry(ctx, request.(DeleteJournalEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteJournalEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteJournalEntryResponseObject); ok {
+		if err := validResponse.VisitDeleteJournalEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetJournalEntry operation middleware
+func (sh *strictHandler) GetJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request GetJournalEntryRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetJournalEntry(ctx, request.(GetJournalEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetJournalEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetJournalEntryResponseObject); ok {
+		if err := validResponse.VisitGetJournalEntryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateJournalEntry operation middleware
+func (sh *strictHandler) UpdateJournalEntry(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateJournalEntryParams) {
+	var request UpdateJournalEntryRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body UpdateJournalEntryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateJournalEntry(ctx, request.(UpdateJournalEntryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateJournalEntry")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateJournalEntryResponseObject); ok {
+		if err := validResponse.VisitUpdateJournalEntryResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1169,46 +2618,314 @@ func (sh *strictHandler) UpdateContact(w http.ResponseWriter, r *http.Request, i
 	}
 }
 
+// GetSelfProfile operation middleware
+func (sh *strictHandler) GetSelfProfile(w http.ResponseWriter, r *http.Request) {
+	var request GetSelfProfileRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSelfProfile(ctx, request.(GetSelfProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSelfProfile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSelfProfileResponseObject); ok {
+		if err := validResponse.VisitGetSelfProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateSelfProfile operation middleware
+func (sh *strictHandler) UpdateSelfProfile(w http.ResponseWriter, r *http.Request, params UpdateSelfProfileParams) {
+	var request UpdateSelfProfileRequestObject
+
+	request.Params = params
+
+	var body UpdateSelfProfileJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateSelfProfile(ctx, request.(UpdateSelfProfileRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateSelfProfile")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateSelfProfileResponseObject); ok {
+		if err := validResponse.VisitUpdateSelfProfileResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListTasks operation middleware
+func (sh *strictHandler) ListTasks(w http.ResponseWriter, r *http.Request, params ListTasksParams) {
+	var request ListTasksRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListTasks(ctx, request.(ListTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListTasksResponseObject); ok {
+		if err := validResponse.VisitListTasksResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateTask operation middleware
+func (sh *strictHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+	var request CreateTaskRequestObject
+
+	var body CreateTaskJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateTask(ctx, request.(CreateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateTaskResponseObject); ok {
+		if err := validResponse.VisitCreateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteTask operation middleware
+func (sh *strictHandler) DeleteTask(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request DeleteTaskRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTask(ctx, request.(DeleteTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteTaskResponseObject); ok {
+		if err := validResponse.VisitDeleteTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTask operation middleware
+func (sh *strictHandler) GetTask(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request GetTaskRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTask(ctx, request.(GetTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTaskResponseObject); ok {
+		if err := validResponse.VisitGetTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateTask operation middleware
+func (sh *strictHandler) UpdateTask(w http.ResponseWriter, r *http.Request, id ResourceId, params UpdateTaskParams) {
+	var request UpdateTaskRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body UpdateTaskJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateTask(ctx, request.(UpdateTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateTaskResponseObject); ok {
+		if err := validResponse.VisitUpdateTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CompleteTask operation middleware
+func (sh *strictHandler) CompleteTask(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request CompleteTaskRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CompleteTask(ctx, request.(CompleteTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompleteTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CompleteTaskResponseObject); ok {
+		if err := validResponse.VisitCompleteTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReopenTask operation middleware
+func (sh *strictHandler) ReopenTask(w http.ResponseWriter, r *http.Request, id ResourceId) {
+	var request ReopenTaskRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ReopenTask(ctx, request.(ReopenTaskRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReopenTask")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ReopenTaskResponseObject); ok {
+		if err := validResponse.VisitReopenTaskResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"r8dcqi8ARQIwQLk063aAzuf/HAA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

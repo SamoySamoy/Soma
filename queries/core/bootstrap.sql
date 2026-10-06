@@ -13,3 +13,9 @@ VALUES (@id, @name, @created_by, @now);
 -- name: InsertSpaceMember :exec
 INSERT INTO space_members (space_id, user_id, role, created_at)
 VALUES (@space_id, @user_id, @role, @now);
+
+-- name: InsertSelfProfile :exec
+-- Every space has one Self profile, created with the space. Idempotent.
+INSERT INTO self_profiles (space_id, updated_at)
+VALUES (@space_id, @now)
+ON CONFLICT (space_id) DO NOTHING;

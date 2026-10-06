@@ -15,7 +15,10 @@ import (
 
 	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
+	"github.com/SamoySamoy/Soma/internal/modules/journal"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
+	"github.com/SamoySamoy/Soma/internal/modules/self"
+	"github.com/SamoySamoy/Soma/internal/modules/tasks"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
 	"github.com/SamoySamoy/Soma/internal/platform/db"
@@ -155,8 +158,14 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 		Web:           web.Dist(),
 		People:        people.NewService(database, clk),
 		BodyMap: bodymap.NewService(database, clk, map[bodymap.Area]bodymap.Provider{
-			bodymap.AreaHeart: people.BodymapProvider{},
+			bodymap.AreaHeart:          people.BodymapProvider{},
+			bodymap.AreaMind:           journal.BodymapProvider{},
+			bodymap.AreaResponsibility: tasks.BodymapProvider{},
+			bodymap.AreaSelf:           self.BodymapProvider{},
 		}),
+		Journal: journal.NewService(database, clk),
+		Tasks:   tasks.NewService(database, clk),
+		Self:    self.NewService(database, clk),
 	})
 	if err != nil {
 		return err
