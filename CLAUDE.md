@@ -11,7 +11,8 @@ Soma (Greek for "body") is a private, self-hostable record of a whole person. Th
 Rules:
 - Code implements the specs. Reference requirement IDs (`IAM-05`, `FIN-02`, `BODY-02`) in tests, PRs and commit bodies.
 - If code needs to differ from the specs, stop and ask. Record any accepted change as a new ADR before writing the code.
-- **Current phase: P1 (MVP).** Build milestones M0 → M7 in order (tech spec §20). Don't start a milestone until the previous one meets its "done when" criteria.
+- **Current phase: P1 (MVP).** Build milestones in order (tech spec §20). Don't start a milestone until the previous one meets its "done when" criteria.
+- **Identity (M1) is deferred by decision (ADR-014).** Until it is built, the server runs only in `local` mode, as one implicit owner (`space.LocalOwnerID`), and refuses to start in any other mode. Don't add a non-local deployment path, and don't weaken the startup check, before M1.
 - **Out of scope for now:** everything in Soma Mind / the simulation layer (RSI, insights, Ask Soma, embeddings, pgvector, any LLM call). Don't add code, tables, dependencies or config for it. P2/P3 features are also out of scope unless the user asks.
 
 ## Stack (pinned)
