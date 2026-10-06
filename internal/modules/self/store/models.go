@@ -22,6 +22,60 @@ type Entity struct {
 	Version   int32
 }
 
+type FinAccount struct {
+	ID           uuid.UUID
+	SpaceID      uuid.UUID
+	Name         string
+	Kind         string
+	Currency     string
+	OpeningMinor int64
+	OpenedOn     time.Time
+}
+
+type FinBudget struct {
+	ID          uuid.UUID
+	SpaceID     uuid.UUID
+	CategoryID  uuid.UUID
+	Month       time.Time
+	AmountMinor int64
+}
+
+type FinCategory struct {
+	ID        uuid.UUID
+	SpaceID   uuid.UUID
+	ParentID  *uuid.UUID
+	Name      string
+	Kind      string
+	CreatedAt time.Time
+}
+
+type FinRate struct {
+	SpaceID  uuid.UUID
+	Currency string
+	RateOn   time.Time
+	RateE8   int64
+}
+
+type FinSetting struct {
+	SpaceID      uuid.UUID
+	BaseCurrency string
+	UpdatedAt    time.Time
+	Version      int32
+}
+
+type FinTransaction struct {
+	ID          uuid.UUID
+	SpaceID     uuid.UUID
+	AccountID   uuid.UUID
+	Kind        string
+	AmountMinor int64
+	OccurredOn  time.Time
+	CategoryID  *uuid.UUID
+	Payee       *string
+	Notes       *string
+	TransferID  *uuid.UUID
+}
+
 type JournalEntry struct {
 	ID        uuid.UUID
 	SpaceID   uuid.UUID
