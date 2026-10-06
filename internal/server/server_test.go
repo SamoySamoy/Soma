@@ -186,3 +186,21 @@ func TestContractDeclaresPermissions(t *testing.T) {
 		}
 	}
 }
+
+// Identity isn't built, so anything but local mode must not start (ADR-014).
+func TestNewRefusesNonLocalModes(t *testing.T) {
+	t.Parallel()
+
+	for _, mode := range []config.Mode{config.ModePrivate, config.ModePublic} {
+		_, err := New(Deps{
+			Config: config.Config{Mode: mode, BaseURL: "https://soma.example.com"},
+			Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+			Clock:  clock.NewFake(time.Date(2026, 10, 6, 0, 0, 0, 0, time.UTC)),
+			Ready:  readyFake{},
+			Web:    fstest.MapFS{},
+		})
+		if err == nil {
+			t.Errorf("New() in %s mode succeeded, want an error", mode)
+		}
+	}
+}

@@ -1,10 +1,12 @@
 openapi: 3.0.3
 info:
   title: Soma API
-  version: 0.1.0
+  version: 0.2.0
   description: |
     The Soma REST API. Every operation declares `x-soma-permission`, the
     permission a caller needs (`public` for unauthenticated endpoints).
+
+    Until identity is built (ADR-014) every request acts as the local owner.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -27,7 +29,148 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /api/v1/people/contacts:
+    get:
+      operationId: listContacts
+      summary: List contacts
+      description: Newest first. Pass `next_cursor` back as `cursor` to get the next page.
+      tags: [people]
+      x-soma-permission: people:read
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: A page of contacts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      operationId: createContact
+      summary: Create a contact
+      tags: [people]
+      x-soma-permission: people:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: The created contact.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /api/v1/people/contacts/{id}:
+    get:
+      operationId: getContact
+      summary: Get a contact
+      tags: [people]
+      x-soma-permission: people:read
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+      responses:
+        "200":
+          description: The contact.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      operationId: updateContact
+      summary: Update a contact
+      description: |
+        JSON Merge Patch (RFC 7396). Send only the fields to change. `null`
+        clears a field. The request must carry `If-Match` with the `ETag` of
+        the version being edited; otherwise, or if that version is stale, the
+        server answers 412.
+      tags: [people]
+      x-soma-permission: people:write
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+        - name: If-Match
+          in: header
+          required: false
+          description: The ETag of the version being edited, for example `"3"`.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactPatch"
+      responses:
+        "200":
+          description: The updated contact.
+          headers:
+            ETag:
+              $ref: "#/components/headers/ETag"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      operationId: deleteContact
+      summary: Move a contact to the trash
+      description: The contact is hidden and can be restored from the trash (X-07) once that exists.
+      tags: [people]
+      x-soma-permission: people:write
+      parameters:
+        - $ref: "#/components/parameters/ContactId"
+      responses:
+        "204":
+          description: Moved to the trash.
+        default:
+          $ref: "#/components/responses/Problem"
+
 components:
+  parameters:
+    ContactId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    ETag:
+      description: The version of the resource, quoted, for use in `If-Match`.
+      schema:
+        type: string
+        example: '"3"'
+
   schemas:
     Meta:
       type: object
@@ -43,6 +186,93 @@ components:
         mode:
           type: string
           enum: [local, private, public]
+
+    Contact:
+      type: object
+      required: [id, display_name, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+          maxLength: 200
+        nickname:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 40
+        birthday:
+          type: string
+          description: Calendar date in the user's timezone, YYYY-MM-DD.
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        how_we_met:
+          type: string
+          maxLength: 500
+        notes:
+          type: string
+          maxLength: 10000
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          minimum: 1
+
+    ContactInput:
+      type: object
+      additionalProperties: false
+      required: [display_name]
+      properties:
+        display_name:
+          type: string
+          maxLength: 200
+        nickname:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 40
+        birthday:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        how_we_met:
+          type: string
+          maxLength: 500
+        notes:
+          type: string
+          maxLength: 10000
+
+    ContactPatch:
+      type: object
+      description: Fields to change. A `null` value clears the field.
+      additionalProperties:
+        type: string
+        nullable: true
+        maxLength: 10000
+
+    ContactList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+        next_cursor:
+          type: string
+          format: uuid
+          description: Pass as `cursor` to get the next page. Absent on the last page.
 
     Problem:
       description: RFC 9457 problem details.

@@ -11,13 +11,17 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Defines values for MetaMode.
@@ -40,6 +44,44 @@ func (e MetaMode) Valid() bool {
 		return false
 	}
 }
+
+// Contact defines model for Contact.
+type Contact struct {
+	// Birthday Calendar date in the user's timezone, YYYY-MM-DD.
+	Birthday    *string            `json:"birthday,omitempty"`
+	CreatedAt   time.Time          `json:"created_at"`
+	DisplayName string             `json:"display_name"`
+	Email       *string            `json:"email,omitempty"`
+	HowWeMet    *string            `json:"how_we_met,omitempty"`
+	Id          openapi_types.UUID `json:"id"`
+	Nickname    *string            `json:"nickname,omitempty"`
+	Notes       *string            `json:"notes,omitempty"`
+	Phone       *string            `json:"phone,omitempty"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+	Version     int                `json:"version"`
+}
+
+// ContactInput defines model for ContactInput.
+type ContactInput struct {
+	Birthday    *string `json:"birthday,omitempty"`
+	DisplayName string  `json:"display_name"`
+	Email       *string `json:"email,omitempty"`
+	HowWeMet    *string `json:"how_we_met,omitempty"`
+	Nickname    *string `json:"nickname,omitempty"`
+	Notes       *string `json:"notes,omitempty"`
+	Phone       *string `json:"phone,omitempty"`
+}
+
+// ContactList defines model for ContactList.
+type ContactList struct {
+	Items []Contact `json:"items"`
+
+	// NextCursor Pass as `cursor` to get the next page. Absent on the last page.
+	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
+}
+
+// ContactPatch Fields to change. A `null` value clears the field.
+type ContactPatch map[string]*string
 
 // Meta defines model for Meta.
 type Meta struct {
@@ -78,11 +120,47 @@ type Problem struct {
 	Type string `json:"type"`
 }
 
+// ContactId defines model for ContactId.
+type ContactId = openapi_types.UUID
+
+// ListContactsParams defines parameters for ListContacts.
+type ListContactsParams struct {
+	Limit  *int                `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *openapi_types.UUID `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// UpdateContactParams defines parameters for UpdateContact.
+type UpdateContactParams struct {
+	// IfMatch The ETag of the version being edited, for example `"3"`.
+	IfMatch *string `json:"If-Match,omitempty"`
+}
+
+// CreateContactJSONRequestBody defines body for CreateContact for application/json ContentType.
+type CreateContactJSONRequestBody = ContactInput
+
+// UpdateContactJSONRequestBody defines body for UpdateContact for application/json ContentType.
+type UpdateContactJSONRequestBody = ContactPatch
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(w http.ResponseWriter, r *http.Request)
+	// ListContacts List contacts
+	// (GET /api/v1/people/contacts)
+	ListContacts(w http.ResponseWriter, r *http.Request, params ListContactsParams)
+	// CreateContact Create a contact
+	// (POST /api/v1/people/contacts)
+	CreateContact(w http.ResponseWriter, r *http.Request)
+	// DeleteContact Move a contact to the trash
+	// (DELETE /api/v1/people/contacts/{id})
+	DeleteContact(w http.ResponseWriter, r *http.Request, id ContactId)
+	// GetContact Get a contact
+	// (GET /api/v1/people/contacts/{id})
+	GetContact(w http.ResponseWriter, r *http.Request, id ContactId)
+	// UpdateContact Update a contact
+	// (PATCH /api/v1/people/contacts/{id})
+	UpdateContact(w http.ResponseWriter, r *http.Request, id ContactId, params UpdateContactParams)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -99,6 +177,168 @@ func (siw *ServerInterfaceWrapper) GetMeta(w http.ResponseWriter, r *http.Reques
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMeta(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListContacts operation middleware
+func (siw *ServerInterfaceWrapper) ListContacts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListContactsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListContacts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateContact operation middleware
+func (siw *ServerInterfaceWrapper) CreateContact(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateContact(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteContact operation middleware
+func (siw *ServerInterfaceWrapper) DeleteContact(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ContactId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteContact(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetContact operation middleware
+func (siw *ServerInterfaceWrapper) GetContact(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ContactId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetContact(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateContact operation middleware
+func (siw *ServerInterfaceWrapper) UpdateContact(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id ContactId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", r.PathValue("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateContactParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch string
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = &IfMatch
+
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateContact(w, r, id, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -229,6 +469,11 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/meta", wrapper.GetMeta)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/people/contacts", wrapper.ListContacts)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/people/contacts", wrapper.CreateContact)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.DeleteContact)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.GetContact)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.UpdateContact)
 
 	return m
 }
@@ -273,11 +518,247 @@ func (response GetMetadefaultApplicationProblemPlusJSONResponse) VisitGetMetaRes
 	return err
 }
 
+type ListContactsRequestObject struct {
+	Params ListContactsParams
+}
+
+type ListContactsResponseObject interface {
+	VisitListContactsResponse(w http.ResponseWriter) error
+}
+
+type ListContacts200JSONResponse ContactList
+
+func (response ListContacts200JSONResponse) VisitListContactsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListContactsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListContactsdefaultApplicationProblemPlusJSONResponse) VisitListContactsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateContactRequestObject struct {
+	Body *CreateContactJSONRequestBody
+}
+
+type CreateContactResponseObject interface {
+	VisitCreateContactResponse(w http.ResponseWriter) error
+}
+
+type CreateContact201ResponseHeaders struct {
+	ETag *string
+}
+
+type CreateContact201JSONResponse struct {
+	Body    Contact
+	Headers CreateContact201ResponseHeaders
+}
+
+func (response CreateContact201JSONResponse) VisitCreateContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateContactdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateContactdefaultApplicationProblemPlusJSONResponse) VisitCreateContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteContactRequestObject struct {
+	Id ContactId `json:"id"`
+}
+
+type DeleteContactResponseObject interface {
+	VisitDeleteContactResponse(w http.ResponseWriter) error
+}
+
+type DeleteContact204Response struct {
+}
+
+func (response DeleteContact204Response) VisitDeleteContactResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteContactdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteContactdefaultApplicationProblemPlusJSONResponse) VisitDeleteContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetContactRequestObject struct {
+	Id ContactId `json:"id"`
+}
+
+type GetContactResponseObject interface {
+	VisitGetContactResponse(w http.ResponseWriter) error
+}
+
+type GetContact200ResponseHeaders struct {
+	ETag *string
+}
+
+type GetContact200JSONResponse struct {
+	Body    Contact
+	Headers GetContact200ResponseHeaders
+}
+
+func (response GetContact200JSONResponse) VisitGetContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetContactdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetContactdefaultApplicationProblemPlusJSONResponse) VisitGetContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContactRequestObject struct {
+	Id     ContactId `json:"id"`
+	Params UpdateContactParams
+	Body   *UpdateContactJSONRequestBody
+}
+
+type UpdateContactResponseObject interface {
+	VisitUpdateContactResponse(w http.ResponseWriter) error
+}
+
+type UpdateContact200ResponseHeaders struct {
+	ETag *string
+}
+
+type UpdateContact200JSONResponse struct {
+	Body    Contact
+	Headers UpdateContact200ResponseHeaders
+}
+
+func (response UpdateContact200JSONResponse) VisitUpdateContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if response.Headers.ETag != nil {
+		w.Header().Set("ETag", fmt.Sprint(*response.Headers.ETag))
+	}
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateContactdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateContactdefaultApplicationProblemPlusJSONResponse) VisitUpdateContactResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(ctx context.Context, request GetMetaRequestObject) (GetMetaResponseObject, error)
+	// ListContacts List contacts
+	// (GET /api/v1/people/contacts)
+	ListContacts(ctx context.Context, request ListContactsRequestObject) (ListContactsResponseObject, error)
+	// CreateContact Create a contact
+	// (POST /api/v1/people/contacts)
+	CreateContact(ctx context.Context, request CreateContactRequestObject) (CreateContactResponseObject, error)
+	// DeleteContact Move a contact to the trash
+	// (DELETE /api/v1/people/contacts/{id})
+	DeleteContact(ctx context.Context, request DeleteContactRequestObject) (DeleteContactResponseObject, error)
+	// GetContact Get a contact
+	// (GET /api/v1/people/contacts/{id})
+	GetContact(ctx context.Context, request GetContactRequestObject) (GetContactResponseObject, error)
+	// UpdateContact Update a contact
+	// (PATCH /api/v1/people/contacts/{id})
+	UpdateContact(ctx context.Context, request UpdateContactRequestObject) (UpdateContactResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx context.Context, w http.ResponseWriter, r *http.Request, request any) (any, error)
@@ -343,23 +824,183 @@ func (sh *strictHandler) GetMeta(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ListContacts operation middleware
+func (sh *strictHandler) ListContacts(w http.ResponseWriter, r *http.Request, params ListContactsParams) {
+	var request ListContactsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListContacts(ctx, request.(ListContactsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListContacts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListContactsResponseObject); ok {
+		if err := validResponse.VisitListContactsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateContact operation middleware
+func (sh *strictHandler) CreateContact(w http.ResponseWriter, r *http.Request) {
+	var request CreateContactRequestObject
+
+	var body CreateContactJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateContact(ctx, request.(CreateContactRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateContact")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateContactResponseObject); ok {
+		if err := validResponse.VisitCreateContactResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteContact operation middleware
+func (sh *strictHandler) DeleteContact(w http.ResponseWriter, r *http.Request, id ContactId) {
+	var request DeleteContactRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteContact(ctx, request.(DeleteContactRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteContact")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteContactResponseObject); ok {
+		if err := validResponse.VisitDeleteContactResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetContact operation middleware
+func (sh *strictHandler) GetContact(w http.ResponseWriter, r *http.Request, id ContactId) {
+	var request GetContactRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetContact(ctx, request.(GetContactRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetContact")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetContactResponseObject); ok {
+		if err := validResponse.VisitGetContactResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateContact operation middleware
+func (sh *strictHandler) UpdateContact(w http.ResponseWriter, r *http.Request, id ContactId, params UpdateContactParams) {
+	var request UpdateContactRequestObject
+
+	request.Id = id
+	request.Params = params
+
+	var body UpdateContactJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateContact(ctx, request.(UpdateContactRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateContact")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateContactResponseObject); ok {
+		if err := validResponse.VisitUpdateContactResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

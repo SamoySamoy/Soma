@@ -16,9 +16,12 @@ import (
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
+	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
+	"github.com/SamoySamoy/Soma/internal/platform/db"
 	"github.com/SamoySamoy/Soma/internal/platform/httpx"
+	"github.com/SamoySamoy/Soma/internal/space"
 )
 
 // apiPrefix is where the versioned REST API lives.
@@ -35,10 +38,16 @@ type Deps struct {
 	SchemaVersion int64
 	// Web is the built single-page app.
 	Web fs.FS
+	// People backs the contact endpoints.
+	People *people.Service
 }
 
-// New returns the root HTTP handler.
+// New returns the root HTTP handler. It refuses every mode but local, because
+// identity isn't built yet (ADR-014).
 func New(d Deps) (http.Handler, error) {
+	if d.Config.Mode != config.ModeLocal {
+		return nil, fmt.Errorf("SOMA_MODE=%s is not available yet: sign-in is not built (ADR-014); use local", d.Config.Mode)
+	}
 	spec, err := apigen.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("load embedded OpenAPI spec: %w", err)
@@ -52,7 +61,7 @@ func New(d Deps) (http.Handler, error) {
 	mux.Handle("GET /healthz", httpx.Liveness())
 	mux.Handle("GET /readyz", httpx.ReadinessHandler(d.Ready, d.SchemaVersion))
 
-	strict := apigen.NewStrictHandlerWithOptions(&api{cfg: d.Config}, nil, apigen.StrictHTTPServerOptions{
+	strict := apigen.NewStrictHandlerWithOptions(&api{cfg: d.Config, Handler: people.NewHandler(d.People)}, nil, apigen.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  badRequest,
 		ResponseErrorHandlerFunc: httpx.WriteError,
 	})
@@ -72,6 +81,7 @@ func New(d Deps) (http.Handler, error) {
 		httpx.Recover(),
 		httpx.SecurityHeaders(strings.HasPrefix(d.Config.BaseURL, "https://")),
 		httpx.CrossOrigin(),
+		localOwner(),
 		validate,
 	), nil
 }
@@ -116,4 +126,17 @@ func requestValidator(spec *openapi3.T) (httpx.Middleware, error) {
 			next.ServeHTTP(w, r)
 		})
 	}, nil
+}
+
+// localOwner makes every request act as the implicit local owner in their
+// personal space (ADR-014). Authentication replaces this middleware with
+// sessions; the services below it don't change.
+func localOwner() httpx.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := db.WithUserID(r.Context(), space.LocalOwnerID)
+			ctx = space.WithSpace(ctx, space.LocalSpaceID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

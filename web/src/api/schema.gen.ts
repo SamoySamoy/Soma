@@ -24,6 +24,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/people/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List contacts
+         * @description Newest first. Pass `next_cursor` back as `cursor` to get the next page.
+         */
+        get: operations["listContacts"];
+        put?: never;
+        /** Create a contact */
+        post: operations["createContact"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/people/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a contact */
+        get: operations["getContact"];
+        put?: never;
+        post?: never;
+        /**
+         * Move a contact to the trash
+         * @description The contact is hidden and can be restored from the trash (X-07) once that exists.
+         */
+        delete: operations["deleteContact"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a contact
+         * @description JSON Merge Patch (RFC 7396). Send only the fields to change. `null`
+         *     clears a field. The request must carry `If-Match` with the `ETag` of
+         *     the version being edited; otherwise, or if that version is stale, the
+         *     server answers 412.
+         */
+        patch: operations["updateContact"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -35,6 +84,44 @@ export interface components {
             version: string;
             /** @enum {string} */
             mode: "local" | "private" | "public";
+        };
+        Contact: {
+            /** Format: uuid */
+            id: string;
+            display_name: string;
+            nickname?: string;
+            email?: string;
+            phone?: string;
+            /** @description Calendar date in the user's timezone, YYYY-MM-DD. */
+            birthday?: string;
+            how_we_met?: string;
+            notes?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            version: number;
+        };
+        ContactInput: {
+            display_name: string;
+            nickname?: string;
+            email?: string;
+            phone?: string;
+            birthday?: string;
+            how_we_met?: string;
+            notes?: string;
+        };
+        /** @description Fields to change. A `null` value clears the field. */
+        ContactPatch: {
+            [key: string]: string | null;
+        };
+        ContactList: {
+            items: components["schemas"]["Contact"][];
+            /**
+             * Format: uuid
+             * @description Pass as `cursor` to get the next page. Absent on the last page.
+             */
+            next_cursor?: string;
         };
         /** @description RFC 9457 problem details. */
         Problem: {
@@ -69,9 +156,14 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        ContactId: string;
+    };
     requestBodies: never;
-    headers: never;
+    headers: {
+        /** @description The version of the resource, quoted, for use in `If-Match`. */
+        ETag: string;
+    };
     pathItems: never;
 }
 export type $defs = Record<string, never>;
@@ -92,6 +184,132 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Meta"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listContacts: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A page of contacts. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactList"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    createContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactInput"];
+            };
+        };
+        responses: {
+            /** @description The created contact. */
+            201: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contact"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ContactId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The contact. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contact"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["ContactId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Moved to the trash. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateContact: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description The ETag of the version being edited, for example `"3"`. */
+                "If-Match"?: string;
+            };
+            path: {
+                id: components["parameters"]["ContactId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactPatch"];
+            };
+        };
+        responses: {
+            /** @description The updated contact. */
+            200: {
+                headers: {
+                    ETag: components["headers"]["ETag"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Contact"];
                 };
             };
             default: components["responses"]["Problem"];

@@ -14,11 +14,13 @@ import (
 	"time"
 
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
+	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
 	"github.com/SamoySamoy/Soma/internal/platform/db"
 	somalog "github.com/SamoySamoy/Soma/internal/platform/log"
 	"github.com/SamoySamoy/Soma/internal/server"
+	"github.com/SamoySamoy/Soma/internal/space"
 	"github.com/SamoySamoy/Soma/migrations"
 	"github.com/SamoySamoy/Soma/web"
 )
@@ -138,13 +140,19 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
+	clk := clock.System{}
+	// Until sign-in exists, the server acts as one implicit owner (ADR-014).
+	if err := space.EnsureLocal(ctx, database, clk); err != nil {
+		return err
+	}
 	handler, err := server.New(server.Deps{
 		Config:        cfg,
 		Logger:        logger,
-		Clock:         clock.System{},
+		Clock:         clk,
 		Ready:         database,
 		SchemaVersion: schema,
 		Web:           web.Dist(),
+		People:        people.NewService(database, clk),
 	})
 	if err != nil {
 		return err

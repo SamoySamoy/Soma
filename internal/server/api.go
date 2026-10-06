@@ -5,13 +5,16 @@ import (
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
+	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
 )
 
-// api implements apigen.StrictServerInterface. As modules arrive it embeds
-// each module's handler so the generated interface is satisfied piece by piece.
+// api implements apigen.StrictServerInterface by combining the core handlers
+// with each module's handler. Each module's methods are promoted through its
+// embedded handler, so adding a module doesn't touch the rest.
 type api struct {
 	cfg config.Config
+	*people.Handler
 }
 
 var _ apigen.StrictServerInterface = (*api)(nil)
