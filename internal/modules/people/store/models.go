@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Entity struct {
@@ -19,6 +20,16 @@ type Entity struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 	Version   int32
+}
+
+type JournalEntry struct {
+	ID        uuid.UUID
+	SpaceID   uuid.UUID
+	AuthorID  uuid.UUID
+	EntryDate pgtype.Date
+	Title     *string
+	Body      string
+	Mood      pgtype.Int2
 }
 
 type PeopleContact struct {
@@ -33,6 +44,16 @@ type PeopleContact struct {
 	Notes       *string
 }
 
+type SelfProfile struct {
+	SpaceID       uuid.UUID
+	PreferredName *string
+	BirthDate     *time.Time
+	CoreValues    *string
+	Bio           *string
+	UpdatedAt     time.Time
+	Version       int32
+}
+
 type Space struct {
 	ID        uuid.UUID
 	Name      string
@@ -45,6 +66,15 @@ type SpaceMember struct {
 	UserID    uuid.UUID
 	Role      string
 	CreatedAt time.Time
+}
+
+type Task struct {
+	ID          uuid.UUID
+	SpaceID     uuid.UUID
+	Title       string
+	Notes       *string
+	DueOn       *time.Time
+	CompletedAt *time.Time
 }
 
 type User struct {
