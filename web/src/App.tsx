@@ -11,7 +11,7 @@ import {
 } from "react-router";
 
 import { HomePage } from "./areas/home/HomePage";
-import { PeoplePage } from "./areas/heart/PeoplePage";
+import { AreaPage } from "./areas/AreaPage";
 
 const theme = createTheme({
   primaryColor: "teal",
@@ -53,7 +53,7 @@ const routes = [
     element: <Layout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: "me/heart", element: <PeoplePage /> },
+      { path: "me/:area", element: <AreaPage /> },
     ],
   },
 ];

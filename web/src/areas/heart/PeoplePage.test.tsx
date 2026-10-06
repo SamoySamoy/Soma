@@ -3,8 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "../../App";
-
-type Call = { method: string; url: string; body: unknown; ifMatch: string | null };
+import { type Call, fakeApi } from "../../test/fakeApi";
 
 const contact = {
   id: "0195f3a2-0000-7000-8000-000000000001",
@@ -18,47 +17,8 @@ const contact = {
   version: 3,
 };
 
-/**
- * Stubs fetch with a small in-memory API: one list response, and the given
- * response for every write. Records each call so tests can check the request.
- */
-function stubApi(
-  writeResponse: { status: number; body?: unknown } = { status: 201, body: contact },
-) {
-  const calls: Call[] = [];
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (input: Request) => {
-      const method = input.method;
-      const url = new URL(input.url);
-      const text = await input.text();
-      const body: unknown = text ? JSON.parse(text) : undefined;
-      calls.push({
-        method,
-        url: url.pathname + url.search,
-        body,
-        ifMatch: input.headers.get("If-Match"),
-      });
-
-      if (method === "GET") {
-        return json(200, { items: [contact] });
-      }
-      return json(
-        writeResponse.status,
-        writeResponse.body,
-        method === "DELETE" ? undefined : '"4"',
-      );
-    }),
-  );
-  return calls;
-}
-
-function json(status: number, body: unknown, etag?: string) {
-  const headers: Record<string, string> = {
-    "Content-Type": status >= 400 ? "application/problem+json" : "application/json",
-  };
-  if (etag) headers.ETag = etag;
-  return new Response(body === undefined ? null : JSON.stringify(body), { status, headers });
+function callsOf(calls: Call[], method: string) {
+  return calls.filter((c) => c.method === method);
 }
 
 afterEach(() => {
@@ -67,7 +27,7 @@ afterEach(() => {
 
 describe("People page", () => {
   it("lists contacts from the API", async () => {
-    stubApi();
+    fakeApi({ contacts: [contact] });
     render(<App initialPath="/me/heart" />);
 
     expect(await screen.findByText("Lan Nguyen")).toBeInTheDocument();
@@ -76,10 +36,7 @@ describe("People page", () => {
   });
 
   it("shows an empty state that invites the first entry", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() => Promise.resolve(json(200, { items: [] }))),
-    );
+    fakeApi({ contacts: [] });
     render(<App initialPath="/me/heart" />);
 
     expect(
@@ -88,7 +45,7 @@ describe("People page", () => {
   });
 
   it("does not send a contact without a name", async () => {
-    const calls = stubApi();
+    const calls = fakeApi({ contacts: [contact] });
     render(<App initialPath="/me/heart" />);
     await screen.findByText("Lan Nguyen");
 
@@ -97,11 +54,11 @@ describe("People page", () => {
     await user.click(await screen.findByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("Enter a name.")).toBeInTheDocument();
-    expect(calls.some((c) => c.method === "POST")).toBe(false);
+    expect(callsOf(calls, "POST").length > 0).toBe(false);
   });
 
   it("rejects a birthday that isn't a calendar date", async () => {
-    const calls = stubApi();
+    const calls = fakeApi({ contacts: [contact] });
     render(<App initialPath="/me/heart" />);
     await screen.findByText("Lan Nguyen");
 
@@ -113,11 +70,11 @@ describe("People page", () => {
     await user.click(within(drawer).getByRole("button", { name: "Save" }));
 
     expect(await within(drawer).findByText("Use the format YYYY-MM-DD.")).toBeInTheDocument();
-    expect(calls.some((c) => c.method === "POST")).toBe(false);
+    expect(callsOf(calls, "POST").length > 0).toBe(false);
   });
 
   it("creates a contact and leaves out fields that were left blank", async () => {
-    const calls = stubApi();
+    const calls = fakeApi({ contacts: [contact] });
     render(<App initialPath="/me/heart" />);
     await screen.findByText("Lan Nguyen");
 
@@ -128,7 +85,7 @@ describe("People page", () => {
     await user.click(within(drawer).getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      expect(calls.some((c) => c.method === "POST")).toBe(true);
+      expect(callsOf(calls, "POST").length > 0).toBe(true);
     });
     const post = calls.find((c) => c.method === "POST");
     expect(post?.url).toBe("/api/v1/people/contacts");
@@ -136,7 +93,10 @@ describe("People page", () => {
   });
 
   it("sends the version being edited in If-Match and clears emptied fields with null", async () => {
-    const calls = stubApi({ status: 200, body: { ...contact, version: 4 } });
+    const calls = fakeApi({
+      contacts: [contact],
+      write: { status: 200, body: { ...contact, version: 4 } },
+    });
     render(<App initialPath="/me/heart" />);
     await screen.findByText("Lan Nguyen");
 
@@ -160,14 +120,17 @@ describe("People page", () => {
   });
 
   it("explains when someone else changed the contact first", async () => {
-    stubApi({
-      status: 412,
-      body: {
-        type: "about:blank",
-        title: "Precondition Failed",
+    fakeApi({
+      contacts: [contact],
+      write: {
         status: 412,
-        code: "people.stale_version",
-        detail: "changed",
+        body: {
+          type: "about:blank",
+          title: "Precondition Failed",
+          status: 412,
+          code: "people.stale_version",
+          detail: "changed",
+        },
       },
     });
     render(<App initialPath="/me/heart" />);
@@ -185,7 +148,7 @@ describe("People page", () => {
   });
 
   it("moves a contact to the trash only after confirming", async () => {
-    const calls = stubApi({ status: 204 });
+    const calls = fakeApi({ contacts: [contact], write: { status: 204 } });
     render(<App initialPath="/me/heart" />);
     await screen.findByText("Lan Nguyen");
 

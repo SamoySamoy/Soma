@@ -8,11 +8,9 @@
     "heart": "Heart"
   },
   "home": {
-    "title": "Welcome to Soma",
-    "bodyMapComing": "Your body map will appear here. For now, start with the people you know.",
-    "openPeople": "Open Heart",
+    "title": "Your body map",
+    "intro": "Each part of the figure is an area of your life. Calm areas are quiet; the others want a look.",
     "instance": "Version {{version}}, {{mode}} mode",
-    "loading": "Connecting to the server…",
     "offline": "Can't reach the Soma server. Check that it is running, then reload the page."
   },
   "mode": {
@@ -64,5 +62,63 @@
     "saved": "Saved.",
     "stale": "This person was changed elsewhere. Close this and reopen them to see the latest version.",
     "saveFailed": "Couldn't save. Check the highlighted fields, then try again."
+  },
+  "area": {
+    "unknown": "This area doesn't exist.",
+    "backToMap": "Back to the body map"
+  },
+  "bodymap": {
+    "figureLabel": "Body map: each part of the figure opens an area of your life",
+    "listLabel": "All areas",
+    "loading": "Loading your body map…",
+    "loadFailed": "Couldn't load the body map. Try again in a moment.",
+    "notBuilt": "Not available yet. It arrives in {{phase}}.",
+    "openArea": "Open {{name}}",
+    "status": {
+      "calm": "Calm",
+      "attention": "Needs attention",
+      "urgent": "Urgent",
+      "unknown": "Not available yet"
+    },
+    "summary": {
+      "none": "Nothing needs attention.",
+      "birthdaysSoon_one": "{{count}} birthday in the next 14 days.",
+      "birthdaysSoon_other": "{{count}} birthdays in the next 14 days."
+    }
+  },
+  "areas": {
+    "mind": {
+      "name": "Mind"
+    },
+    "self": {
+      "name": "Self"
+    },
+    "responsibilities": {
+      "name": "Responsibilities"
+    },
+    "heart": {
+      "name": "Heart"
+    },
+    "body": {
+      "name": "Body"
+    },
+    "work": {
+      "name": "Work"
+    },
+    "money": {
+      "name": "Money"
+    },
+    "growth": {
+      "name": "Growth"
+    },
+    "journeys": {
+      "name": "Journeys"
+    },
+    "home": {
+      "name": "Home"
+    },
+    "papers": {
+      "name": "Papers"
+    }
   }
 }
