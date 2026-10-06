@@ -1,10 +1,17 @@
-import { AppShell, Group, MantineProvider, Text, Title, createTheme } from "@mantine/core";
+import { AppShell, Anchor, Group, MantineProvider, Text, Title, createTheme } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Outlet, RouterProvider, createBrowserRouter, createMemoryRouter } from "react-router";
+import {
+  Link,
+  Outlet,
+  RouterProvider,
+  createBrowserRouter,
+  createMemoryRouter,
+} from "react-router";
 
 import { HomePage } from "./areas/home/HomePage";
+import { PeoplePage } from "./areas/heart/PeoplePage";
 
 const theme = createTheme({
   primaryColor: "teal",
@@ -16,11 +23,19 @@ function Layout() {
   return (
     <AppShell header={{ height: 56 }} padding="md">
       <AppShell.Header>
-        <Group h="100%" px="md" gap="sm">
+        <Group h="100%" px="md" gap="lg" wrap="nowrap">
           <Title order={2} size="h4">
             {t("app.name")}
           </Title>
-          <Text size="sm" c="dimmed" visibleFrom="sm">
+          <Group gap="md" component="nav" aria-label="Main">
+            <Anchor component={Link} to="/" size="sm">
+              {t("nav.home")}
+            </Anchor>
+            <Anchor component={Link} to="/me/heart" size="sm">
+              {t("nav.heart")}
+            </Anchor>
+          </Group>
+          <Text size="sm" c="dimmed" visibleFrom="md">
             {t("app.tagline")}
           </Text>
         </Group>
@@ -33,7 +48,14 @@ function Layout() {
 }
 
 const routes = [
-  { path: "/", element: <Layout />, children: [{ index: true, element: <HomePage /> }] },
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "me/heart", element: <PeoplePage /> },
+    ],
+  },
 ];
 
 type AppProps = {

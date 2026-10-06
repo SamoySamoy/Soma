@@ -3,9 +3,14 @@
     "name": "Soma",
     "tagline": "A private record of a whole person."
   },
+  "nav": {
+    "home": "Home",
+    "heart": "Heart"
+  },
   "home": {
     "title": "Welcome to Soma",
-    "bodyMapComing": "Your body map will appear here.",
+    "bodyMapComing": "Your body map will appear here. For now, start with the people you know.",
+    "openPeople": "Open Heart",
     "instance": "Version {{version}}, {{mode}} mode",
     "loading": "Connecting to the server…",
     "offline": "Can't reach the Soma server. Check that it is running, then reload the page."
@@ -14,5 +19,50 @@
     "local": "local",
     "private": "private server",
     "public": "public cloud"
+  },
+  "people": {
+    "title": "People",
+    "intro": "The people you know, and how to keep in touch with them.",
+    "add": "Add person",
+    "edit": "Edit",
+    "editNamed": "Edit {{name}}",
+    "loading": "Loading people…",
+    "loadFailed": "Couldn't load your people. Try again in a moment.",
+    "loadMore": "Load more",
+    "empty": "No people yet. Add the first person you know.",
+    "columns": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email",
+      "birthday": "Birthday"
+    },
+    "form": {
+      "addTitle": "Add person",
+      "editTitle": "Edit person",
+      "displayName": "Name",
+      "nickname": "Nickname",
+      "email": "Email",
+      "phone": "Phone",
+      "birthday": "Birthday",
+      "birthdayHint": "YYYY-MM-DD",
+      "howWeMet": "How you met",
+      "notes": "Notes",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "validation": {
+      "nameRequired": "Enter a name.",
+      "birthday": "Use the format YYYY-MM-DD."
+    },
+    "trash": {
+      "action": "Move to trash",
+      "confirm": "Move {{name}} to the trash? You can restore it later.",
+      "confirmAction": "Yes, move to trash",
+      "done": "Moved to trash."
+    },
+    "saved": "Saved.",
+    "stale": "This person was changed elsewhere. Close this and reopen them to see the latest version.",
+    "saveFailed": "Couldn't save. Check the highlighted fields, then try again."
   }
 }
