@@ -16,6 +16,7 @@ import (
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
+	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
@@ -40,6 +41,8 @@ type Deps struct {
 	Web fs.FS
 	// People backs the contact endpoints.
 	People *people.Service
+	// BodyMap backs the landing page.
+	BodyMap *bodymap.Service
 }
 
 // New returns the root HTTP handler. It refuses every mode but local, because
@@ -61,7 +64,7 @@ func New(d Deps) (http.Handler, error) {
 	mux.Handle("GET /healthz", httpx.Liveness())
 	mux.Handle("GET /readyz", httpx.ReadinessHandler(d.Ready, d.SchemaVersion))
 
-	strict := apigen.NewStrictHandlerWithOptions(&api{cfg: d.Config, Handler: people.NewHandler(d.People)}, nil, apigen.StrictHTTPServerOptions{
+	strict := apigen.NewStrictHandlerWithOptions(&api{cfg: d.Config, people: people.NewHandler(d.People), bodymap: bodymap.NewHandler(d.BodyMap)}, nil, apigen.StrictHTTPServerOptions{
 		RequestErrorHandlerFunc:  badRequest,
 		ResponseErrorHandlerFunc: httpx.WriteError,
 	})

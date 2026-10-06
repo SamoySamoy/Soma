@@ -22,6 +22,7 @@ type Permission string
 
 // Permissions. Add one per module action as modules arrive.
 const (
+	BodymapRead Permission = "bodymap:read"
 	PeopleRead  Permission = "people:read"
 	PeopleWrite Permission = "people:write"
 )
@@ -37,9 +38,9 @@ const (
 )
 
 var grants = map[Role]map[Permission]bool{
-	RoleOwner:  {PeopleRead: true, PeopleWrite: true},
-	RoleEditor: {PeopleRead: true, PeopleWrite: true},
-	RoleViewer: {PeopleRead: true},
+	RoleOwner:  {BodymapRead: true, PeopleRead: true, PeopleWrite: true},
+	RoleEditor: {BodymapRead: true, PeopleRead: true, PeopleWrite: true},
+	RoleViewer: {BodymapRead: true, PeopleRead: true},
 }
 
 // Allows reports whether role grants perm. Unknown roles grant nothing.

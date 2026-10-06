@@ -31,3 +31,11 @@ SET display_name = @display_name,
     how_we_met = @how_we_met,
     notes = @notes
 WHERE id = @id AND space_id = @space_id;
+
+-- name: ListBirthdays :many
+SELECT c.birthday
+FROM people_contacts c
+JOIN entities e ON e.id = c.id
+WHERE c.space_id = @space_id
+  AND e.deleted_at IS NULL
+  AND c.birthday IS NOT NULL;

@@ -24,6 +24,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bodymap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The body map
+         * @description Every area of life with its status, in one response. Areas whose module
+         *     isn't built yet have `enabled: false` and status `unknown`.
+         */
+        get: operations["getBodyMap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/people/contacts": {
         parameters: {
             query?: never;
@@ -115,6 +136,30 @@ export interface components {
         ContactPatch: {
             [key: string]: string | null;
         };
+        BodyMap: {
+            /** Format: date-time */
+            as_of: string;
+            areas: components["schemas"]["BodyArea"][];
+        };
+        BodyArea: {
+            /** @enum {string} */
+            key: "mind" | "self" | "responsibilities" | "heart" | "body" | "work" | "money" | "growth" | "journeys" | "home" | "papers";
+            /**
+             * @description The release that delivers this area.
+             * @enum {string}
+             */
+            phase: "P1" | "P2" | "P3";
+            /**
+             * @description `unknown` means the area isn't enabled yet.
+             * @enum {string}
+             */
+            status: "calm" | "attention" | "urgent" | "unknown";
+            enabled: boolean;
+            /** @description Figures behind the status, keyed by name. */
+            counts: {
+                [key: string]: number;
+            };
+        };
         ContactList: {
             items: components["schemas"]["Contact"][];
             /**
@@ -184,6 +229,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Meta"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getBodyMap: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The body map. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BodyMap"];
                 };
             };
             default: components["responses"]["Problem"];

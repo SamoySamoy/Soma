@@ -17,6 +17,7 @@ import (
 	"github.com/getkin/kin-openapi/routers/gorillamux"
 
 	"github.com/SamoySamoy/Soma/internal/apigen"
+	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
 	"github.com/SamoySamoy/Soma/internal/platform/config"
@@ -48,6 +49,7 @@ func newLocalServer(t *testing.T) *httptest.Server {
 		SchemaVersion: 0,
 		Web:           fstest.MapFS{},
 		People:        people.NewService(d, clk),
+		BodyMap:       bodymap.NewService(d, clk, map[bodymap.Area]bodymap.Provider{bodymap.AreaHeart: people.BodymapProvider{}}),
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -212,4 +214,60 @@ func TestContactsOverHTTP(t *testing.T) {
 	if res.StatusCode != http.StatusNotFound {
 		t.Errorf("get after delete = %d, want 404", res.StatusCode)
 	}
+}
+
+func TestBodyMapOverHTTP(t *testing.T) {
+	t.Parallel()
+
+	t.Run("a birthday within two weeks needs attention", func(t *testing.T) {
+		t.Parallel()
+		srv := newLocalServer(t)
+		// The test clock is 2026-10-06, so this birthday is three days away.
+		//nolint:bodyclose // call reads and closes the body
+		call(t, srv, http.MethodPost, "/api/v1/people/contacts",
+			map[string]any{"display_name": "Minh", "birthday": "1990-10-09"}, nil)
+
+		//nolint:bodyclose // call reads and closes the body
+		res, raw := call(t, srv, http.MethodGet, "/api/v1/bodymap", nil, nil)
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("status = %d, body %s", res.StatusCode, raw)
+		}
+		areas := bodyAreas(t, raw)
+		heart := areas["heart"]
+		if !heart.Enabled || heart.Status != apigen.Attention || heart.Counts["birthdays_soon"] != 1 {
+			t.Errorf("heart = %+v, want enabled, attention, one birthday soon", heart)
+		}
+	})
+
+	t.Run("no upcoming birthdays is calm, and unbuilt areas are disabled", func(t *testing.T) {
+		t.Parallel()
+		srv := newLocalServer(t)
+
+		//nolint:bodyclose // call reads and closes the body
+		_, raw := call(t, srv, http.MethodGet, "/api/v1/bodymap", nil, nil)
+		areas := bodyAreas(t, raw)
+		if len(areas) != 11 {
+			t.Fatalf("got %d areas, want 11", len(areas))
+		}
+		if heart := areas["heart"]; heart.Status != apigen.Calm {
+			t.Errorf("heart status = %q, want calm", heart.Status)
+		}
+		mind := areas["mind"]
+		if mind.Enabled || mind.Status != apigen.Unknown || mind.Phase != apigen.P1 {
+			t.Errorf("mind = %+v, want disabled, unknown, phase P1", mind)
+		}
+	})
+}
+
+func bodyAreas(t *testing.T, raw []byte) map[string]apigen.BodyArea {
+	t.Helper()
+	var body apigen.BodyMap
+	if err := json.Unmarshal(raw, &body); err != nil {
+		t.Fatalf("decode body map: %v", err)
+	}
+	out := map[string]apigen.BodyArea{}
+	for _, a := range body.Areas {
+		out[string(a.Key)] = a
+	}
+	return out
 }

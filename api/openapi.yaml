@@ -29,6 +29,25 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /api/v1/bodymap:
+    get:
+      operationId: getBodyMap
+      summary: The body map
+      description: |
+        Every area of life with its status, in one response. Areas whose module
+        isn't built yet have `enabled: false` and status `unknown`.
+      tags: [bodymap]
+      x-soma-permission: bodymap:read
+      responses:
+        "200":
+          description: The body map.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BodyMap"
+        default:
+          $ref: "#/components/responses/Problem"
+
   /api/v1/people/contacts:
     get:
       operationId: listContacts
@@ -260,6 +279,41 @@ components:
         type: string
         nullable: true
         maxLength: 10000
+
+    BodyMap:
+      type: object
+      required: [as_of, areas]
+      properties:
+        as_of:
+          type: string
+          format: date-time
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/BodyArea"
+
+    BodyArea:
+      type: object
+      required: [key, phase, status, enabled, counts]
+      properties:
+        key:
+          type: string
+          enum: [mind, self, responsibilities, heart, body, work, money, growth, journeys, home, papers]
+        phase:
+          type: string
+          enum: [P1, P2, P3]
+          description: The release that delivers this area.
+        status:
+          type: string
+          enum: [calm, attention, urgent, unknown]
+          description: "`unknown` means the area isn't enabled yet."
+        enabled:
+          type: boolean
+        counts:
+          type: object
+          description: Figures behind the status, keyed by name.
+          additionalProperties:
+            type: integer
 
     ContactList:
       type: object

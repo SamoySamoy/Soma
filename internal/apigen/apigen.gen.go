@@ -24,6 +24,96 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for BodyAreaKey.
+const (
+	Body             BodyAreaKey = "body"
+	Growth           BodyAreaKey = "growth"
+	Heart            BodyAreaKey = "heart"
+	Home             BodyAreaKey = "home"
+	Journeys         BodyAreaKey = "journeys"
+	Mind             BodyAreaKey = "mind"
+	Money            BodyAreaKey = "money"
+	Papers           BodyAreaKey = "papers"
+	Responsibilities BodyAreaKey = "responsibilities"
+	Self             BodyAreaKey = "self"
+	Work             BodyAreaKey = "work"
+)
+
+// Valid indicates whether the value is a known member of the BodyAreaKey enum.
+func (e BodyAreaKey) Valid() bool {
+	switch e {
+	case Body:
+		return true
+	case Growth:
+		return true
+	case Heart:
+		return true
+	case Home:
+		return true
+	case Journeys:
+		return true
+	case Mind:
+		return true
+	case Money:
+		return true
+	case Papers:
+		return true
+	case Responsibilities:
+		return true
+	case Self:
+		return true
+	case Work:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for BodyAreaPhase.
+const (
+	P1 BodyAreaPhase = "P1"
+	P2 BodyAreaPhase = "P2"
+	P3 BodyAreaPhase = "P3"
+)
+
+// Valid indicates whether the value is a known member of the BodyAreaPhase enum.
+func (e BodyAreaPhase) Valid() bool {
+	switch e {
+	case P1:
+		return true
+	case P2:
+		return true
+	case P3:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for BodyAreaStatus.
+const (
+	Attention BodyAreaStatus = "attention"
+	Calm      BodyAreaStatus = "calm"
+	Unknown   BodyAreaStatus = "unknown"
+	Urgent    BodyAreaStatus = "urgent"
+)
+
+// Valid indicates whether the value is a known member of the BodyAreaStatus enum.
+func (e BodyAreaStatus) Valid() bool {
+	switch e {
+	case Attention:
+		return true
+	case Calm:
+		return true
+	case Unknown:
+		return true
+	case Urgent:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MetaMode.
 const (
 	Local   MetaMode = "local"
@@ -43,6 +133,35 @@ func (e MetaMode) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// BodyArea defines model for BodyArea.
+type BodyArea struct {
+	// Counts Figures behind the status, keyed by name.
+	Counts  map[string]int `json:"counts"`
+	Enabled bool           `json:"enabled"`
+	Key     BodyAreaKey    `json:"key"`
+
+	// Phase The release that delivers this area.
+	Phase BodyAreaPhase `json:"phase"`
+
+	// Status `unknown` means the area isn't enabled yet.
+	Status BodyAreaStatus `json:"status"`
+}
+
+// BodyAreaKey defines model for BodyArea.Key.
+type BodyAreaKey string
+
+// BodyAreaPhase The release that delivers this area.
+type BodyAreaPhase string
+
+// BodyAreaStatus `unknown` means the area isn't enabled yet.
+type BodyAreaStatus string
+
+// BodyMap defines model for BodyMap.
+type BodyMap struct {
+	Areas []BodyArea `json:"areas"`
+	AsOf  time.Time  `json:"as_of"`
 }
 
 // Contact defines model for Contact.
@@ -143,6 +262,9 @@ type UpdateContactJSONRequestBody = ContactPatch
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// GetBodyMap The body map
+	// (GET /api/v1/bodymap)
+	GetBodyMap(w http.ResponseWriter, r *http.Request)
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(w http.ResponseWriter, r *http.Request)
@@ -171,6 +293,20 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// GetBodyMap operation middleware
+func (siw *ServerInterfaceWrapper) GetBodyMap(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetBodyMap(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // GetMeta operation middleware
 func (siw *ServerInterfaceWrapper) GetMeta(w http.ResponseWriter, r *http.Request) {
@@ -469,6 +605,7 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	}
 
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/meta", wrapper.GetMeta)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/bodymap", wrapper.GetBodyMap)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/api/v1/people/contacts", wrapper.ListContacts)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/api/v1/people/contacts", wrapper.CreateContact)
 	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/api/v1/people/contacts/{id}", wrapper.DeleteContact)
@@ -479,6 +616,44 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
+
+type GetBodyMapRequestObject struct {
+}
+
+type GetBodyMapResponseObject interface {
+	VisitGetBodyMapResponse(w http.ResponseWriter) error
+}
+
+type GetBodyMap200JSONResponse BodyMap
+
+func (response GetBodyMap200JSONResponse) VisitGetBodyMapResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBodyMapdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetBodyMapdefaultApplicationProblemPlusJSONResponse) VisitGetBodyMapResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
 
 type GetMetaRequestObject struct {
 }
@@ -741,6 +916,9 @@ func (response UpdateContactdefaultApplicationProblemPlusJSONResponse) VisitUpda
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// GetBodyMap The body map
+	// (GET /api/v1/bodymap)
+	GetBodyMap(ctx context.Context, request GetBodyMapRequestObject) (GetBodyMapResponseObject, error)
 	// GetMeta Instance information
 	// (GET /api/v1/meta)
 	GetMeta(ctx context.Context, request GetMetaRequestObject) (GetMetaResponseObject, error)
@@ -798,6 +976,30 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// GetBodyMap operation middleware
+func (sh *strictHandler) GetBodyMap(w http.ResponseWriter, r *http.Request) {
+	var request GetBodyMapRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetBodyMap(ctx, request.(GetBodyMapRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBodyMap")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetBodyMapResponseObject); ok {
+		if err := validResponse.VisitGetBodyMapResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // GetMeta operation middleware
@@ -972,35 +1174,41 @@ func (sh *strictHandler) UpdateContact(w http.ResponseWriter, r *http.Request, i
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

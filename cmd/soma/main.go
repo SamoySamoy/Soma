@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/SamoySamoy/Soma/internal/bodymap"
 	"github.com/SamoySamoy/Soma/internal/buildinfo"
 	"github.com/SamoySamoy/Soma/internal/modules/people"
 	"github.com/SamoySamoy/Soma/internal/platform/clock"
@@ -153,6 +154,9 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 		SchemaVersion: schema,
 		Web:           web.Dist(),
 		People:        people.NewService(database, clk),
+		BodyMap: bodymap.NewService(database, clk, map[bodymap.Area]bodymap.Provider{
+			bodymap.AreaHeart: people.BodymapProvider{},
+		}),
 	})
 	if err != nil {
 		return err

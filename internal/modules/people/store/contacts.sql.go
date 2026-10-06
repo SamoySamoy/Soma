@@ -90,6 +90,35 @@ func (q *Queries) InsertContact(ctx context.Context, arg InsertContactParams) er
 	return err
 }
 
+const listBirthdays = `-- name: ListBirthdays :many
+SELECT c.birthday
+FROM people_contacts c
+JOIN entities e ON e.id = c.id
+WHERE c.space_id = $1
+  AND e.deleted_at IS NULL
+  AND c.birthday IS NOT NULL
+`
+
+func (q *Queries) ListBirthdays(ctx context.Context, spaceID uuid.UUID) ([]*time.Time, error) {
+	rows, err := q.db.Query(ctx, listBirthdays, spaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []*time.Time
+	for rows.Next() {
+		var birthday *time.Time
+		if err := rows.Scan(&birthday); err != nil {
+			return nil, err
+		}
+		items = append(items, birthday)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listContacts = `-- name: ListContacts :many
 SELECT c.id, c.display_name, c.nickname, c.email, c.phone, c.birthday, c.how_we_met, c.notes,
        e.created_at, e.updated_at, e.version
